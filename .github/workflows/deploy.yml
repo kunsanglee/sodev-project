@@ -9,7 +9,7 @@ env: # 여러 스텝에서 사용하는 변수들을 한 곳으로 모아서 정
   S3_BUCKET_NAME: s3-sodev # S3의 버킷이름
   RESOURCE_PATH: ./sodev-api/src/main/resources/application.yml
   CODE_DEPLOY_APPLICATION_NAME: CODE-DEPLOY-SODEV # 코드 디플로이 어플리케이션 이름
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: CODE-DEPLOY-GROUP # 코드 디플로이 어플리케이션 그룹 이름
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: CODE-DEPLOY-SODEV-GROUP # 코드 디플로이 어플리케이션 그룹 이름
 
 jobs: # 하나의 job 선언하고 그 안에 여러 step들을 정의
   build:
@@ -58,8 +58,8 @@ jobs: # 하나의 job 선언하고 그 안에 여러 step들을 정의
 
       - name: Code Deploy # 최종적으로 Code Deploy Agent를 사용해서 S3 에 올라가있는 파일을 가져와서 배포하는 부분
         run: | # 코드가 길어져서 엔터를 치겠다는 하나의 표현방식
-          aws deploy create-deployment \ # \는 줄바꿈
+          aws deploy create-deployment \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
           --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
           --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-          --deployment-config-name CodeDeployDefault.AllAtOnce \
           --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
