@@ -1,0 +1,4 @@
+rootProject.name = 'sodev-project'
+
+include 'sodev-api'
+include 'sodev-common'
