@@ -23,3 +23,18 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// jar 파일안에 어플리케이션을 실행하는데 필요한 디펜던시, 클래스, 리소스등을 포함.
+// boot jar 기본값은 true. common module 은 다른 모듈에서 참조하는 목적의 모듈이기 때문에
+// 실행 가능한 jar 파일을 만들 필요가 없다. 그래서 bootJar 옵션을 false 로 변경.
+tasks.bootJar { enabled = false }
+// xxx-plain.jar -> 디펜던시나 리소스를 포함하지 않은 깡통자바. 기본값이 true 지만 관례상 써준다.
+tasks.jar { enabled = true }
+// 명령어
+// ./gradlew clean :sodev-api:buildNeeded --stacktrace --info --refresh-dependencies -x test
+// ./gradlew clean -> gradlew 를 사용해서 clean.
+// :sodev-api:buildNeeded -> module-api 모듈을 빌드해달라
+// --stacktrace -> 로그를 쌓아서 보여달라
+// --info -> info 레벨 이상의 로그를 출력해줘라 logging level 을 설정하는 옵션 debug -> info -> warn -> error
+// --refresh-dependencies -> 디펜던시를 한 번 더 리프레시 해줘라
+// -x test -> test 코드를 제외하고 빌드하는 옵션. 모든 test 코드가 실패가 뜨면 build 자체가 실패됨.
