@@ -1,13 +1,24 @@
+server:
+  port: 8081
+  tomcat:
+    uri-encoding: UTF-8
+
 spring:
   profiles:
-    active: local
+    group:
+      "local" : "local"
+      "dev" : "dev"
+      "prod" : "prod"
+    default: prod
 
 logging-module:
   version: 0.0.2
 
 ---
 spring:
-  profiles: local
+  config:
+    activate:
+      on-profile: local
   main:
     allow-bean-definition-overriding: true
   datasource:
@@ -30,7 +41,9 @@ spring:
 
 ---
 spring:
-  profiles: develop
+  config:
+    activate:
+      on-profile: dev
   main:
     allow-bean-definition-overriding: true
   datasource:
@@ -53,7 +66,9 @@ spring:
 
 ---
 spring:
-  profiles: prod
+  config:
+    activate:
+      on-profile: prod
   main:
     allow-bean-definition-overriding: true
   datasource:
