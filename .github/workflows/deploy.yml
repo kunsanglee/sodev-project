@@ -28,7 +28,7 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          ./gradlew $MODULE_NAME:build
+          ./sodev-api/gradlew clean :sodev-api:buildNeeded --stacktrace --info --refresh-dependencies -x test
         shell: bash
 
       - name: Make zip file
