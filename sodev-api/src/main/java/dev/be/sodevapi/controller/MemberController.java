@@ -21,4 +21,9 @@ public class MemberController {
     public String test() {
         return "deploy success";
     }
+
+    @GetMapping("/nginx")
+    public String nginx() {
+        return "nginx success";
+    }
 }
