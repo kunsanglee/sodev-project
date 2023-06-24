@@ -54,7 +54,7 @@ jobs: # 하나의 job 선언하고 그 안에 여러 step들을 정의
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Upload to S3 # 위에서 압축시킨 프로젝트 결과 파일을 S3에 업로드 하는 부분
-        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
 
       - name: Code Deploy # 최종적으로 Code Deploy Agent를 사용해서 S3 에 올라가있는 파일을 가져와서 배포하는 부분
         run: | # 코드가 길어져서 엔터를 치겠다는 하나의 표현방식
@@ -62,4 +62,4 @@ jobs: # 하나의 job 선언하고 그 안에 여러 step들을 정의
           --deployment-config-name CodeDeployDefault.AllAtOnce \
           --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
           --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
+          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
