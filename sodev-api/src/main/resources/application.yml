@@ -11,38 +11,26 @@ spring:
       "prod" : "prod"
     default: prod
 
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: leekunsin
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create # 'none' or 'create'
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          time_zone: Asia/Seoul
+
 logging-module:
   version: 0.0.2
 
-
-## application.yml
-#
-#logging-module:
-#  version: 0.0.2
-#
-#server:
-#  port: 8081
-#
-#spring:
-#  config:
-#    activate:
-#      on-profile: prod
-#  main:
-#    allow-bean-definition-overriding: true
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/postgres
-#    username: leekunsin
-#    password: 1234
-#    driver-class-name: org.postgresql.Driver
-#  jpa:
-#    database: postgresql
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
-#    hibernate:
-#      ddl-auto: create # 'none' or 'create'
-#    properties:
-#      hibernate:
-#        show_sql: true
-#        format_sql: true
-#        use_sql_comments: true
-#        jdbc:
-#          time_zone: Asia/Seoul
