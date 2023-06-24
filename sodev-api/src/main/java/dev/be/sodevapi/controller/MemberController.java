@@ -14,6 +14,6 @@ public class MemberController {
     @GetMapping("/members")
     public String member() {
         memberRepository.findAll();
-        return "ok!";
+        return "ok!!";
     }
 }
