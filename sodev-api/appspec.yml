@@ -1,25 +1,3 @@
-#version: 0.0
-#os: linux
-#files:
-#  - source: /
-#    destination: /home/ubuntu/sodev-project
-#    overwrite: yes
-#
-#permissions:
-#  - object: /
-#    pattern: "**"
-#    owner: ubuntu
-#    group: ubuntu
-#
-#hooks:
-#  ApplicationStart:
-#    - location: scripts/gh_deploy.sh
-#      timeout: 60
-#      runas: ubuntu
-
-
-
-
 version: 0.0
 os: linux
 files:
@@ -33,15 +11,37 @@ permissions:
     owner: ubuntu
     group: ubuntu
 
-### 새로 추가한 부분 ###
 hooks:
   ApplicationStart:
-    - location: scripts/run_new_was.sh
+    - location: scripts/gh_deploy.sh
       timeout: 60
       runas: ubuntu
-    - location: scripts/health_check.sh
-      timeout: 60
-      runas: ubuntu
-    - location: scripts/switch.sh
-      timeout: 60
-      runas: ubuntu
+
+
+
+
+#version: 0.0
+#os: linux
+#files:
+#  - source: /
+#    destination: /home/ubuntu/sodev-project
+#    overwrite: yes
+#
+#permissions:
+#  - object: /
+#    pattern: "**"
+#    owner: ubuntu
+#    group: ubuntu
+#
+#### 새로 추가한 부분 ###
+#hooks:
+#  ApplicationStart:
+#    - location: scripts/run_new_was.sh
+#      timeout: 60
+#      runas: ubuntu
+#    - location: scripts/health_check.sh
+#      timeout: 60
+#      runas: ubuntu
+#    - location: scripts/switch.sh
+#      timeout: 60
+#      runas: ubuntu
