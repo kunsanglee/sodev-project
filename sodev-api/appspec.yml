@@ -13,7 +13,7 @@ permissions:
 
 hooks:
   ApplicationStart:
-    - location: scripts/gh_deploy.sh
+    - location: /sodev-api/scripts/gh_deploy.sh
       timeout: 60
       runas: ubuntu
 
