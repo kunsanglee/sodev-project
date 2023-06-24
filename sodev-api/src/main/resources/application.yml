@@ -1,4 +1,10 @@
+spring:
+  profiles:
+    default: prod
+
 ---
+server:
+  port: 8081
 
 spring:
   config:
