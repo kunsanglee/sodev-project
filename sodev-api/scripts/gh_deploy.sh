@@ -29,7 +29,7 @@ fi
 
 DEPLOY_JAR=$DEPLOY_PATH$JAR_NAME
 echo "> DEPLOY_JAR 배포" >> $DEPLOY_LOG_PATH
-nohup java -jar -Dspring.profiles.active=prod $DEPLOY_JAR --server.port=8080  >> $APPLICATION_LOG_PATH 2> $DEPLOY_ERR_LOG_PATH & # nohub 과 &를 사용해서 윈도우 창을 닫더라도, 터미널을 종료하더라도 백그라운드에서 동작할 수 있게 함. -Dspring.profiles.active=prod -> 멀티모듈을 사용해서 배포환경에 따라 local, dev, prod 이런식으로 지정하여 사용할 수 있음. --server.port=8080 -> 포트번호를 변경 가능
+nohup java -jar -Dspring.profiles.active=prod $DEPLOY_JAR --server.port=8081  >> $APPLICATION_LOG_PATH 2> $DEPLOY_ERR_LOG_PATH & # nohub 과 &를 사용해서 윈도우 창을 닫더라도, 터미널을 종료하더라도 백그라운드에서 동작할 수 있게 함. -Dspring.profiles.active=prod -> 멀티모듈을 사용해서 배포환경에 따라 local, dev, prod 이런식으로 지정하여 사용할 수 있음. --server.port=8080 -> 포트번호를 변경 가능
 
 sleep 3
 
