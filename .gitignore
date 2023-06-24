@@ -7,7 +7,6 @@ build/
 
 ### 추가 ###
 .github
-scripts
 
 ### STS ###
 .apt_generated
