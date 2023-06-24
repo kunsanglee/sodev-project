@@ -3,7 +3,7 @@
 spring:
   config:
     activate:
-      on-profile: prod
+      on-profile: local
   main:
     allow-bean-definition-overriding: true
   datasource:
