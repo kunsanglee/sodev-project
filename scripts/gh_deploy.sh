@@ -34,3 +34,4 @@ nohup java -jar -Dspring.profiles.active=prod $DEPLOY_JAR --server.port=8080  >>
 sleep 3
 
 echo "> 배포 종료 : $(date +%c)" >> $DEPLOY_LOG_PATH # 배포 시작 시간과 종료 시간을 체크해서 배포하는데 얼마나 걸리는지 체크하여 보완
+

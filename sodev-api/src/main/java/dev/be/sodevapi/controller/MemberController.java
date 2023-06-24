@@ -16,4 +16,9 @@ public class MemberController {
         memberRepository.findAll();
         return "ok!!!";
     }
+
+    @GetMapping("/test")
+    public String test() {
+        return "deploy success";
+    }
 }
