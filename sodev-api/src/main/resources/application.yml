@@ -4,13 +4,6 @@ server:
     uri-encoding: UTF-8
 
 spring:
-  profiles:
-    group:
-      "local" : "local"
-      "dev" : "dev"
-      "prod" : "prod"
-    default: prod
-
   main:
     allow-bean-definition-overriding: true
   datasource:
