@@ -25,5 +25,5 @@ spring:
           time_zone: Asia/Seoul
 
 logging-module:
-  version: 0.0.2
+  version: 0.0.1
 
