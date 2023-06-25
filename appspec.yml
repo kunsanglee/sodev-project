@@ -1,25 +1,3 @@
-#version: 0.0
-#os: linux
-#files:
-#  - source: /
-#    destination: /home/ubuntu/sodev-project
-#    overwrite: yes
-#
-#permissions:
-#  - object: /
-#    pattern: "**"
-#    owner: ubuntu
-#    group: ubuntu
-#
-#hooks:
-#  ApplicationStart:
-#    - location: /sodev-api/scripts/gh_deploy.sh
-#      timeout: 60
-#      runas: ubuntu
-
-
-
-
 version: 0.0
 os: linux
 files:

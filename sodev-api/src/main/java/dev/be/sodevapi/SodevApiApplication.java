@@ -5,9 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication(
-        scanBasePackages = { "dev.be.sodevapi", "dev.be.sodevcommon" }
-)
+@SpringBootApplication
 @EntityScan(basePackages = "dev.be.sodevcommon.domain")
 @EnableJpaRepositories(basePackages = "dev.be.sodevcommon.repository")
 public class SodevApiApplication {

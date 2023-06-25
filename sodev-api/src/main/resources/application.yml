@@ -1,29 +1,14 @@
 server:
-  port: 8081
-  tomcat:
-    uri-encoding: UTF-8
+  port: 8083
 
 spring:
-  main:
-    allow-bean-definition-overriding: true
+#  main:
+#    allow-bean-definition-overriding: true
+  profiles:
+    default: dev
+
   datasource:
+    driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres
     username: leekunsin
     password: 1234
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: create # 'none' or 'create'
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
-        use_sql_comments: true
-        jdbc:
-          time_zone: Asia/Seoul
-
-logging-module:
-  version: 0.0.5
-
