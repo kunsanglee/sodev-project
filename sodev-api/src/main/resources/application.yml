@@ -1,14 +1,26 @@
 server:
-  port: 8083
+  port: 8080
 
 spring:
 #  main:
 #    allow-bean-definition-overriding: true
   profiles:
-    default: prod
+    default: dev
+
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        use_sql_comments: true
+        default_batch_fetch_size: 500
+        jdbc:
+          time_zone: Asia/Seoul
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/sodev
     username: leekunsin
     password: 1234

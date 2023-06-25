@@ -2,24 +2,16 @@ server:
   port: 8083
 
 spring:
-#  main:
-#    allow-bean-definition-overriding: true
   config:
     activate:
       on-profile: dev
 
   jpa:
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
-        use_sql_comments: true
-        jdbc:
-          time_zone: Asia/Seoul
+      ddl-auto: update # update or validate
+
+logging.level:
+  org.hibernate.SQL: debug
 
 logging-module:
   version: 0.0.3
