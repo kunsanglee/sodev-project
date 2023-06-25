@@ -36,12 +36,12 @@ permissions:
 ### 새로 추가한 부분 ###
 hooks:
   ApplicationStart:
-    - location: /sodev-api/scripts/run_new_was.sh
+    - location: scripts/run_new_was.sh
       timeout: 60
       runas: ubuntu
-    - location: /sodev-api/scripts/health_check.sh
+    - location: scripts/health_check.sh
       timeout: 60
       runas: ubuntu
-    - location: /sodev-api/scripts/switch.sh
+    - location: scripts/switch.sh
       timeout: 60
       runas: ubuntu
