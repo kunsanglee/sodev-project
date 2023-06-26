@@ -1,11 +1,14 @@
-package dev.be.sodevcommon.model;
+package dev.be.sodevcommon.model.entity;
 
+import dev.be.sodevcommon.model.enums.AlarmType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Where;
 
 @Setter
 @Getter

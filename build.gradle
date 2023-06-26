@@ -35,6 +35,8 @@ subprojects {
     dependencies {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
     }
 
     tasks.named('test') {
@@ -56,3 +58,5 @@ project(':sodev-common') { // sodev-common -> bootJar로 패키징 할 필요 �
     bootJar { enabled = false }
     jar { enabled = true }
 }
+
+

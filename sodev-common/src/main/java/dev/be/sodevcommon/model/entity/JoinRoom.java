@@ -1,4 +1,4 @@
-package dev.be.sodevcommon.model;
+package dev.be.sodevcommon.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package dev.be.sodevcommon.model;
+package dev.be.sodevcommon.model.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

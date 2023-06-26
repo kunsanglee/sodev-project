@@ -1,4 +1,4 @@
-package dev.be.sodevcommon.model;
+package dev.be.sodevcommon.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberSkill extends BaseEntity {
+public class ChatMember extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_skill_id")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "chat_member_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -18,8 +19,7 @@ public class MemberSkill extends BaseEntity {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "skill_id")
-    private Skill skill;
-
+    @JoinColumn(name = "chat_id")
+    private Chat chat;
 
 }

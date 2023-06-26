@@ -1,5 +1,6 @@
-package dev.be.sodevcommon.model;
+package dev.be.sodevcommon.model.entity;
 
+import dev.be.sodevcommon.model.enums.ProjectState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

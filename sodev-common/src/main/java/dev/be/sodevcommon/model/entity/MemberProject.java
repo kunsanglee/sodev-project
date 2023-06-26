@@ -1,5 +1,7 @@
-package dev.be.sodevcommon.model;
+package dev.be.sodevcommon.model.entity;
 
+
+import dev.be.sodevcommon.model.enums.ProjectState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -7,10 +9,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Likes extends BaseEntity {
+public class MemberProject extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "like_id")
+    @Column(name = "member_project_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -20,5 +22,8 @@ public class Likes extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
+
+    @Enumerated(EnumType.STRING)
+    private ProjectState state;
 
 }

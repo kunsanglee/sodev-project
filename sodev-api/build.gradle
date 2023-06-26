@@ -1,7 +1,7 @@
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     // root project -> settings.gradle 에 선언한 값과 동일해야함
     implementation project(':sodev-common')
 }
+
