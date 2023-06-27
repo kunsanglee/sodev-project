@@ -1,4 +1,4 @@
-package dev.sodev.repository;
+package dev.sodev.domain.repository;
 
 
 import dev.sodev.config.AbstractDataJpaTest;
