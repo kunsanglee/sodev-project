@@ -9,7 +9,7 @@ repositories {
 }
 
 bootJar {
-    mainClass = 'dev.be.SodevApiApplication'
+    mainClass = 'dev.sodev.SodevApiApplication'
 }
 
 subprojects {

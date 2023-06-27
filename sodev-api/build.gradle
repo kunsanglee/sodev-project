@@ -1,6 +1,6 @@
 jar { enabled = false }
 
 dependencies {
-    implementation project(':sodev-common')
+    implementation project(':sodev-core')
 }
 
