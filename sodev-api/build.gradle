@@ -1,7 +1,6 @@
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+jar { enabled = false }
 
-    // root project -> settings.gradle 에 선언한 값과 동일해야함
+dependencies {
     implementation project(':sodev-common')
 }
 

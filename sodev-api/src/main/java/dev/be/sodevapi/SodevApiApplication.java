@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @EnableJpaAuditing
-@EntityScan(basePackages = "dev.be.sodevcommon.model")
-@EnableJpaRepositories(basePackages = "dev.be.sodevcommon.repository")
+@EntityScan(basePackages = "dev.be.sodevcommon.domain.entity")
+@EnableJpaRepositories(basePackages = "dev.be.sodevcommon.domain.repository")
 @SpringBootApplication
 public class SodevApiApplication {
 

@@ -1,6 +1,6 @@
 package dev.be.sodevapi.controller;
 
-import dev.be.sodevcommon.repository.MemberRepository;
+import dev.be.sodevcommon.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
