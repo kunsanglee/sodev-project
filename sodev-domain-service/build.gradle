@@ -6,7 +6,6 @@ dependencies {
     implementation project (':sodev-domain-rds')
     implementation project (':sodev-domain-redis')
 
-    implementation 'org.springframework.boot:spring-boot-starter-web'
 }
 
 
