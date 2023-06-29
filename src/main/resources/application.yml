@@ -21,9 +21,9 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/sodev
-    username: leekunsin
-    password: 1234
+    url: ${POSTGRESQL_DB_URL}
+    username: ${POSTGRESQL_USER_NAME}
+    password: ${POSTGRESQL_PASSWORD}
 
 logging.level:
   org.hibernate.SQL: debug
