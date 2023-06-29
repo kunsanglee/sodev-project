@@ -19,6 +19,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+
     @Transactional
     public MemberJoinResponse join(MemberJoinRequest request) {
         // 아이디 중복일 시 에러 반환
@@ -39,6 +40,5 @@ public class MemberService {
 
         return new MemberJoinResponse("회원가입이 완료되었습니다.");
     }
-
 
 }
