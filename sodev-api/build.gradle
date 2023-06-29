@@ -1,8 +1,0 @@
-jar { enabled = false }
-
-dependencies {
-    implementation project(':sodev-domain-service')
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-}
-

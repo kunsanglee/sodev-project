@@ -4,61 +4,46 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.0'
 }
 
+group = 'dev.be'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
 repositories {
     mavenCentral()
 }
 
-bootJar {
-    mainClass = 'dev.sodev.SodevApiApplication'
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-62:3.3.2'
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.7.1'
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+    annotationProcessor 'org.projectlombok:lombok'
+
+    compileOnly 'org.projectlombok:lombok'
+
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    testCompileOnly 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.7.2'
+
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
-subprojects {
-    group = 'dev.be'
-    version = '0.0.1-SNAPSHOT'
+tasks.named('test') {
+    useJUnitPlatform()
+}
 
-    java {
-        sourceCompatibility = '17'
-    }
-
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management' // spring boot dependency 를 사용하여 사용중인 부트 버전에서 자동으로 의존성을 가져온다.
-
-    configurations {
-        compileOnly {
-            extendsFrom annotationProcessor
-        }
-    }
-
-    repositories {
-        mavenCentral()
-    }
-
-    // 관리하는 모듈의 공통 dependencies
-    dependencies {
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-        implementation 'io.hypersistence:hypersistence-utils-hibernate-62:3.3.2'
-        implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.7.1'
-        
-        compileOnly 'org.projectlombok:lombok'
-
-        runtimeOnly 'com.h2database:h2'
-
-        annotationProcessor 'org.projectlombok:lombok'
-
-        testCompileOnly 'org.projectlombok:lombok'
-
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.7.2'
-
-        testAnnotationProcessor 'org.projectlombok:lombok'
-
-    }
-
-    tasks.named('test') {
-        useJUnitPlatform()
-    }
-
-    tasks.register("prepareKotlinBuildScriptModel") {}
+task cleanGeneatedDir(type: Delete) {
+    delete file('src/main/generated')
 }

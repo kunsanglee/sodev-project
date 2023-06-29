@@ -1,5 +1,1 @@
 rootProject.name = 'sodev-project'
-include 'sodev-api'
-include 'sodev-domain-service'
-include 'sodev-domain-rds'
-include 'sodev-domain-redis'
