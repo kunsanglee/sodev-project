@@ -7,7 +7,7 @@ on:
 
 env: # 여러 스텝에서 사용하는 변수들을 한 곳으로 모아서 정의
   S3_BUCKET_NAME: sodev-s3 # S3의 버킷이름
-  RESOURCE_PATH: .src/main/resources/application.yml
+  RESOURCE_PATH: ./src/main/resources/application.yml
   CODE_DEPLOY_APPLICATION_NAME: CODE-DEPLOY-SODEV # 코드 디플로이 어플리케이션 이름
   CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: CODE-DEPLOY-SODEV-GROUP # 코드 디플로이 어플리케이션 그룹 이름
   PROJECT_NAME: sodev-project
