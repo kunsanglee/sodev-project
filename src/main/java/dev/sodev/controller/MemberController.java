@@ -28,8 +28,4 @@ public class MemberController {
         return Response.success(new MemberLoginResponse(memberService.login(request)));
     }
 
-    @GetMapping("/nginx")
-    public String nginx() {
-        return "nginx success";
-    }
 }
