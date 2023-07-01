@@ -29,12 +29,9 @@ public class LogAspect {
         TraceStatus status = null;
 
         try{
-
             status = logTrace.begin(joinPoint.getSignature().toShortString());
             Object result = joinPoint.proceed();
-
             logTrace.end(status);
-
             return result;
         }catch (Throwable e){
             e.printStackTrace();

@@ -18,6 +18,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -68,6 +70,10 @@ public class MemberService {
         }
         // 비밀번호가 일치하면 토큰 발급
         return JwtTokenUtil.generateAccessToken(savedMember.getEmail(), secretKey, expiredTimeMs);
+    }
+
+    public List<Member> memberTest() {
+        return memberRepository.findAll();
     }
 
 }
