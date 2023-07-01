@@ -1,4 +1,4 @@
-package dev.sodev.repository.entity;
+package dev.sodev.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,11 +7,13 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMember extends BaseEntity {
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn
+public abstract class Message extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chat_member_id")
+    @Column(name = "message_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

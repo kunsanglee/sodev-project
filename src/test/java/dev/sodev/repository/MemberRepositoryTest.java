@@ -1,14 +1,14 @@
 package dev.sodev.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import dev.sodev.repository.entity.Member;
+import dev.sodev.domain.entity.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static dev.sodev.repository.entity.QMember.*;
+import static dev.sodev.domain.entity.QMember.member;
 
 @Slf4j
 @SpringBootTest
@@ -37,7 +37,6 @@ class MemberRepositoryTest {
 
         log.info("member={}", findMember);
         log.info("member.email={}", findMember.getEmail());
-
     }
 
 }

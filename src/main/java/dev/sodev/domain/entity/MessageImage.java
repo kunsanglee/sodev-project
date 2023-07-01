@@ -1,4 +1,4 @@
-package dev.sodev.repository.entity;
+package dev.sodev.domain.entity;
 
 import jakarta.persistence.Entity;
 

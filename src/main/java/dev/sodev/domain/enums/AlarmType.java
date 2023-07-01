@@ -1,4 +1,4 @@
-package dev.sodev.repository.enums;
+package dev.sodev.domain.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
