@@ -1,10 +1,13 @@
 package dev.sodev.service;
 
 import dev.sodev.controller.request.MemberJoinRequest;
+import dev.sodev.controller.request.MemberLoginRequest;
+import dev.sodev.controller.response.MemberJoinResponse;
+import dev.sodev.domain.MemberAuth;
 import dev.sodev.exception.ErrorCode;
 import dev.sodev.exception.SodevApplicationException;
 import dev.sodev.repository.MemberRepository;
-import dev.sodev.repository.entity.Member;
+import dev.sodev.domain.entity.Member;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -14,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.*;
 
@@ -32,10 +33,12 @@ class MemberServiceTest {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
+
     @AfterAll
     public static void close() {
         factory.close();
     }
+
     @Autowired
     MemberService memberService;
 
@@ -64,7 +67,7 @@ class MemberServiceTest {
                 .nickName("TEST")
                 .build();
 
-        when(memberRepository.findMemberByEmail(memberJoinRequest.getEmail())).thenReturn(Optional.empty());
+        when(memberRepository.findByEmail(memberJoinRequest.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(member.getPwd())).thenReturn("passwordEncode");
         when(memberRepository.save(any())).thenReturn(member);
 
@@ -92,7 +95,7 @@ class MemberServiceTest {
                 .build();
 
         //  fixture 반환
-        when(memberRepository.findMemberByEmail(memberJoinRequest.getEmail())).thenReturn(Optional.of(member));
+        when(memberRepository.findByEmail(memberJoinRequest.getEmail())).thenReturn(Optional.of(member));
         when(memberRepository.save(any())).thenReturn(Optional.of(member));
 
         SodevApplicationException e = Assertions.assertThrows(SodevApplicationException.class, () -> memberService.join(memberJoinRequest));
@@ -230,7 +233,56 @@ class MemberServiceTest {
         });
     }
 
+    @Test
+    public void 로그인이_성공하는_경우() throws Exception {
+        MemberLoginRequest request = MemberLoginRequest.builder()
+                .email("sodev@sodev.com")
+                .pwd("asdf1234!")
+                .build();
+        Member member = Member.builder()
+                .email(request.getEmail())
+                .pwd(passwordEncoder.encode(request.getPwd()))
+                .build();
 
+        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(request.getPwd(), member.getPwd())).thenReturn(true);
+        Assertions.assertDoesNotThrow(() -> memberService.login(request));
+    }
 
+    @Test
+    public void 로그인시_회원이_존재하지_않는_경우() throws Exception {
+        // given
+        MemberLoginRequest request = MemberLoginRequest.builder()
+                .email("sodev@sodev.com")
+                .pwd("asdf1234!")
+                .build();
+
+        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
+        SodevApplicationException exception = Assertions.assertThrows(SodevApplicationException.class
+                , () -> memberService.login(request));
+
+        Assertions.assertEquals(ErrorCode.MEMBER_NOT_FOUND, exception.getErrorCode());
+
+    }
+
+    @Test
+    public void 로그인시_비밀번호가_일치하지_않는_경우() throws Exception {
+        // given
+        MemberLoginRequest request = MemberLoginRequest.builder()
+                .email("sodev@sodev.com")
+                .pwd("asdf1234!")
+                .build();
+        Member member = Member.builder()
+                .email(request.getEmail())
+                .pwd(passwordEncoder.encode("1234asdf!"))
+                .build();
+
+        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
+        SodevApplicationException exception = Assertions.assertThrows(SodevApplicationException.class
+                , () -> memberService.login(request));
+
+        Assertions.assertEquals(ErrorCode.INVALID_PASSWORD, exception.getErrorCode());
+
+    }
 
 }

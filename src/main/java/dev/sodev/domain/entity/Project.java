@@ -1,6 +1,6 @@
-package dev.sodev.repository.entity;
+package dev.sodev.domain.entity;
 
-import dev.sodev.repository.enums.ProjectState;
+import dev.sodev.domain.enums.ProjectState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

@@ -1,39 +1,43 @@
 package dev.sodev.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.sodev.config.SecurityConfig;
 import dev.sodev.controller.request.MemberJoinRequest;
+import dev.sodev.controller.request.MemberLoginRequest;
 import dev.sodev.controller.response.MemberJoinResponse;
+import dev.sodev.domain.MemberAuth;
+import dev.sodev.domain.entity.Member;
 import dev.sodev.exception.ErrorCode;
 import dev.sodev.exception.SodevApplicationException;
+import dev.sodev.fixture.MemberFixture;
 import dev.sodev.service.MemberService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@AutoConfigureMockMvc(addFilters = false)
-@MockBean(JpaMetamodelMappingContext.class)
-@WebMvcTest(controllers = MemberController.class)
+@Slf4j
+@Import({SecurityConfig.class})
+@WebMvcTest(MemberController.class)
 public class MemberControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @MockBean
-    MemberService memberService;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
+    @MockBean MemberService memberService;
 
     @Test
     @DisplayName("회원가입 성공")
@@ -49,7 +53,7 @@ public class MemberControllerTest {
 
         when(memberService.join(memberJoinRequest)).thenReturn(mock(MemberJoinResponse.class));
 
-        mockMvc.perform(post("/sign-up")
+        mockMvc.perform(post("/v1/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(memberJoinRequest))
                         .with(csrf()))
@@ -71,7 +75,7 @@ public class MemberControllerTest {
 
         when(memberService.join(memberJoinRequest)).thenThrow(new SodevApplicationException(ErrorCode.DUPLICATE_USER_ID));
 
-        mockMvc.perform(post("/sign-up")
+        mockMvc.perform(post("/v1/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(memberJoinRequest))
                         .with(csrf()))
@@ -91,7 +95,7 @@ public class MemberControllerTest {
                 .build();
 
 
-        mockMvc.perform(post("/sign-up")
+        mockMvc.perform(post("/v1/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(memberJoinRequest))
                         .with(csrf()))
@@ -112,11 +116,64 @@ public class MemberControllerTest {
                 .build();
 
 
-        mockMvc.perform(post("/sign-up")
+        mockMvc.perform(post("/v1/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(memberJoinRequest))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @WithAnonymousUser
+    public void 로그인_성공() throws Exception {
+        Member member = MemberFixture.get("sodev@sodev.com", "1234asdf!");
+        MemberLoginRequest request = new MemberLoginRequest(member.getEmail(), member.getPwd());
+        log.info("request.email={}", request.getEmail());
+
+        when(memberService.login(request)).thenReturn("test-token");
+        when(memberService.loadUserByUsername(request.getEmail())).thenReturn(MemberAuth.fromEntity(member));
+
+        mockMvc.perform(post("/v1/sign-in")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(request)))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    public void 로그인_존재하지_않는_회원인_경우_실패() throws Exception {
+        MemberLoginRequest request = MemberLoginRequest.builder()
+                .email("abc@def.com")
+                .pwd("1234asdf!")
+                .build();
+        Member member = MemberFixture.get("jkl@nm.com", request.getPwd());
+
+        when(memberService.login(request)).thenThrow(new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        when(memberService.loadUserByUsername(request.getEmail())).thenThrow(new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+
+        mockMvc.perform(post("/v1/sign-in")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithAnonymousUser
+    public void 로그인시_비밀번호가_다르면_에러발생() throws Exception {
+        MemberLoginRequest request = MemberLoginRequest.builder()
+                .email("sodev@sodev.com")
+                .pwd("asdf1234!")
+                .build();
+
+        given(memberService.login(request)).willThrow(new SodevApplicationException(ErrorCode.INVALID_PASSWORD));
+
+        mockMvc.perform(post("/v1/sign-in")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new MemberLoginRequest("sodev@sodev.com", "1234asdf!"))))
+                .andDo(print())
+                .andExpect(status().isUnauthorized()); // 401 Unauthorized 에러 확인
+    }
+
 }
