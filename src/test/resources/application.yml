@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    include: jwt
   jpa:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -18,10 +20,6 @@ spring:
     url: ${POSTGRESQL_DB_URL}
     username: ${POSTGRESQL_USER_NAME}
     password: ${POSTGRESQL_PASSWORD}
-
-jwt:
-  secret-key: local-sodev-project-2023-secret-key-1234
-  token.expired-time-ms: 2592000000 # 30 days
 
 logging.level:
   org.hibernate.SQL: debug
