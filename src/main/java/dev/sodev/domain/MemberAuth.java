@@ -26,7 +26,7 @@ public class MemberAuth implements UserDetails {
 
     private Long id;
     private String email;
-    private String pwd;
+    private String password;
     private Auth role;
     private LocalDateTime removedAt;
 
@@ -34,7 +34,7 @@ public class MemberAuth implements UserDetails {
         return new MemberAuth(
                 member.getId(),
                 member.getEmail(),
-                member.getPwd(),
+                member.getPassword(),
                 member.getAuth(),
                 member.getRemovedAt()
         );

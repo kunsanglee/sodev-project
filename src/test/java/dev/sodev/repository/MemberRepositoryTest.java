@@ -22,7 +22,7 @@ class MemberRepositoryTest {
     public void createMember() {
         Member member = Member.builder()
                 .email("sodev@gmail.com")
-                .pwd("1234")
+                .password("1234")
                 .nickName("sodev")
                 .introduce("test introduce")
                 .build();
