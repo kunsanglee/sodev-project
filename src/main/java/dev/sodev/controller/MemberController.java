@@ -6,6 +6,7 @@ import dev.sodev.controller.response.MemberJoinResponse;
 import dev.sodev.controller.response.MemberLoginResponse;
 import dev.sodev.controller.response.Response;
 import dev.sodev.service.MemberService;
+import dev.sodev.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +24,8 @@ public class MemberController {
         return Response.success(response);
     }
 
-    @PostMapping("/sign-in")
-    public Response<MemberLoginResponse> login(@RequestBody @Valid MemberLoginRequest request) {
-        return Response.success(new MemberLoginResponse(memberService.login(request)));
+    @GetMapping("/members")
+    public String members() {
+        return "username : " + SecurityUtil.getLoginEmail();
     }
-
 }
