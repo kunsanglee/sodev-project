@@ -1,11 +1,8 @@
 package dev.sodev.service;
 
 import dev.sodev.controller.request.MemberJoinRequest;
-import dev.sodev.controller.request.MemberLoginRequest;
-import dev.sodev.controller.response.MemberJoinResponse;
-import dev.sodev.domain.MemberAuth;
-import dev.sodev.exception.ErrorCode;
-import dev.sodev.exception.SodevApplicationException;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.repository.MemberRepository;
 import dev.sodev.domain.entity.Member;
 import jakarta.validation.ConstraintViolation;
@@ -54,7 +51,7 @@ class MemberServiceTest {
     void 회원가입이_정상적으로_작동되는경우() {
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -62,13 +59,13 @@ class MemberServiceTest {
 
         Member member = Member.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
 
         when(memberRepository.findByEmail(memberJoinRequest.getEmail())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(member.getPwd())).thenReturn("passwordEncode");
+        when(passwordEncoder.encode(member.getPassword())).thenReturn("passwordEncode");
         when(memberRepository.save(any())).thenReturn(member);
 
         Assertions.assertDoesNotThrow( () -> memberService.join(memberJoinRequest));
@@ -80,7 +77,7 @@ class MemberServiceTest {
 
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -89,7 +86,7 @@ class MemberServiceTest {
 
         Member member = Member.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -107,7 +104,7 @@ class MemberServiceTest {
     void 유효성_검사_성공일경우() {
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -125,7 +122,7 @@ class MemberServiceTest {
         // given
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -143,7 +140,7 @@ class MemberServiceTest {
         // given
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -162,7 +159,7 @@ class MemberServiceTest {
         // given - id가 이메일 형식이 아닌경우
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd(null)
+                .password(null)
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -180,7 +177,7 @@ class MemberServiceTest {
         // given - id가 이메일 형식이 아닌경우
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd("123")
+                .password("123")
                 .phone("010-1111-1111")
                 .nickName("TEST")
                 .build();
@@ -199,7 +196,7 @@ class MemberServiceTest {
         // given - id가 이메일 형식이 아닌경우
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010")
                 .nickName("TEST")
                 .build();
@@ -220,7 +217,7 @@ class MemberServiceTest {
         // given - id가 이메일 형식이 아닌경우
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
-                .pwd("1234!Qwerty")
+                .password("1234!Qwerty")
                 .phone("010-1111-1111")
                 .nickName("")
                 .build();
@@ -231,58 +228,6 @@ class MemberServiceTest {
         violations.forEach( error -> {
             Assertions.assertEquals("닉네임을 입력해주세요.", error.getMessage());
         });
-    }
-
-    @Test
-    public void 로그인이_성공하는_경우() throws Exception {
-        MemberLoginRequest request = MemberLoginRequest.builder()
-                .email("sodev@sodev.com")
-                .pwd("asdf1234!")
-                .build();
-        Member member = Member.builder()
-                .email(request.getEmail())
-                .pwd(passwordEncoder.encode(request.getPwd()))
-                .build();
-
-        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
-        when(passwordEncoder.matches(request.getPwd(), member.getPwd())).thenReturn(true);
-        Assertions.assertDoesNotThrow(() -> memberService.login(request));
-    }
-
-    @Test
-    public void 로그인시_회원이_존재하지_않는_경우() throws Exception {
-        // given
-        MemberLoginRequest request = MemberLoginRequest.builder()
-                .email("sodev@sodev.com")
-                .pwd("asdf1234!")
-                .build();
-
-        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
-        SodevApplicationException exception = Assertions.assertThrows(SodevApplicationException.class
-                , () -> memberService.login(request));
-
-        Assertions.assertEquals(ErrorCode.MEMBER_NOT_FOUND, exception.getErrorCode());
-
-    }
-
-    @Test
-    public void 로그인시_비밀번호가_일치하지_않는_경우() throws Exception {
-        // given
-        MemberLoginRequest request = MemberLoginRequest.builder()
-                .email("sodev@sodev.com")
-                .pwd("asdf1234!")
-                .build();
-        Member member = Member.builder()
-                .email(request.getEmail())
-                .pwd(passwordEncoder.encode("1234asdf!"))
-                .build();
-
-        when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
-        SodevApplicationException exception = Assertions.assertThrows(SodevApplicationException.class
-                , () -> memberService.login(request));
-
-        Assertions.assertEquals(ErrorCode.INVALID_PASSWORD, exception.getErrorCode());
-
     }
 
 }

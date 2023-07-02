@@ -2,8 +2,6 @@ server:
   port: 8080
 
 spring:
-#  main:
-#    allow-bean-definition-overriding: true
   profiles:
     default: local
 
@@ -25,9 +23,16 @@ spring:
     username: ${POSTGRESQL_USER_NAME}
     password: ${POSTGRESQL_PASSWORD}
 
-jwt:
-  secret-key: local-sodev-project-2023-secret-key-1234
-  token.expired-time-ms: 2592000000 # 30 days
-
 logging.level:
   org.hibernate.SQL: debug
+
+jwt:
+  secret: local-sodev-project-2023-secret-key-1234-local-sodev-project-2023-secret-key-1234
+
+  access:
+    expiration: 30
+    header: Authorization
+
+  refresh:
+    expiration: 60
+    header: Authorization-refresh

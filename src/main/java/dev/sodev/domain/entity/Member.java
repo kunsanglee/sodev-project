@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -24,7 +25,7 @@ public class Member extends BaseEntity {
     @Column(name = "member_id")
     private Long id;
     private String email;
-    private String pwd;
+    private String password;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -42,7 +43,38 @@ public class Member extends BaseEntity {
     private String imageUuid;
     private String imageName;
 
+    @Column(length = 1000)
+    private String refreshToken;
+
+
     private LocalDateTime removedAt;
 
+    //== 정보 수정 ==//
+    public void updatePassword(PasswordEncoder passwordEncoder, String password){
+        this.password = passwordEncoder.encode(password);
+    }
+
+    public void updateName(String name){
+        this.email = name;
+    }
+
+    public void updateNickName(String nickName){
+        this.nickName = nickName;
+    }
+
+    public void updateRefreshToken(String refreshToken){
+        this.refreshToken = refreshToken;
+    }
+
+    public void destroyRefreshToken(){
+        this.refreshToken = null;
+    }
+
+
+
+    //== 패스워드 암호화 ==//
+    public void encodePassword(PasswordEncoder passwordEncoder){
+        this.password = passwordEncoder.encode(password);
+    }
 
 }
