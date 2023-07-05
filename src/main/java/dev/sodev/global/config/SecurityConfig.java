@@ -6,8 +6,8 @@ import dev.sodev.global.login.filter.JsonUsernamePasswordAuthenticationFilter;
 import dev.sodev.global.login.filter.JwtAuthenticationProcessingFilter;
 import dev.sodev.global.login.handler.LoginFailureHandler;
 import dev.sodev.global.login.handler.LoginSuccessJWTProvideHandler;
-import dev.sodev.repository.MemberRepository;
-import dev.sodev.service.LoginService;
+import dev.sodev.domain.member.repository.MemberRepository;
+import dev.sodev.domain.member.service.LoginService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT를 사용하기 때문에 세션을 사용하지 않음.
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests
-                                .requestMatchers("/v1/sign-up", "/v1/sign-in").permitAll()
+                                .requestMatchers("/v1/join", "/v1/login").permitAll()
                                 .anyRequest().authenticated())
                 .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class)
                 .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class)

@@ -1,7 +1,7 @@
 package dev.sodev.global.login.handler;
 
 import dev.sodev.global.jwt.JwtService;
-import dev.sodev.repository.MemberRepository;
+import dev.sodev.domain.member.repository.MemberRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
