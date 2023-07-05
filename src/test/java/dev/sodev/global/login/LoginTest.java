@@ -1,9 +1,9 @@
 package dev.sodev.global.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.sodev.domain.entity.Member;
+import dev.sodev.domain.member.Member;
 import dev.sodev.domain.enums.Auth;
-import dev.sodev.repository.MemberRepository;
+import dev.sodev.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ public class LoginTest {
     private static String MEMBER_EMAIL = "member@email.com";
     private static String PASSWORD = "123456789";
 
-    private static String LOGIN_RUL = "/v1/sign-in";
+    private static String LOGIN_RUL = "/v1/login";
 
 
     private void clear() {

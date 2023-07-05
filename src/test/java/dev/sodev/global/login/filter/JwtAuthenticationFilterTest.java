@@ -3,12 +3,11 @@ package dev.sodev.global.login.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.sodev.domain.entity.Member;
+import dev.sodev.domain.member.Member;
 import dev.sodev.domain.enums.Auth;
 import dev.sodev.global.jwt.JwtService;
-import dev.sodev.repository.MemberRepository;
+import dev.sodev.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +60,7 @@ public class JwtAuthenticationFilterTest {
     private static String KEY_PASSWORD = "password";
     private static String EMAIL = "sodev@sodev.com";
     private static String PASSWORD = "123456789";
-    private static String LOGIN_RUL = "/v1/sign-in";
+    private static String LOGIN_RUL = "/v1/login";
 
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String BEARER = "Bearer ";

@@ -26,3 +26,14 @@ logging.level:
 
 logging-module:
   version: 0.0.4
+
+jwt:
+  secret: local-sodev-project-2023-secret-key-1234-local-sodev-project-2023-secret-key-1234
+
+  access:
+    expiration: 30
+    header: Authorization
+
+  refresh:
+    expiration: 60
+    header: Authorization-refresh

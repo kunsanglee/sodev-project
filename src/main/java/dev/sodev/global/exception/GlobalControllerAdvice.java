@@ -1,6 +1,6 @@
 package dev.sodev.global.exception;
 
-import dev.sodev.controller.response.Response;
+import dev.sodev.global.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 public class GlobalControllerAdvice {
+
     @ExceptionHandler(SodevApplicationException.class)
     public ResponseEntity<?> applicationHandler(SodevApplicationException e) {
         log.error("Error ocure {}", e.toString());
         return ResponseEntity.status(e.getErrorCode().getStatus())
                 .body(Response.error(e.getErrorCode().name()));
     }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> applicationHandler(RuntimeException e) {
         log.error("Error ocure {}", e.toString());

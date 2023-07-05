@@ -3,10 +3,10 @@ package dev.sodev.global.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.sodev.domain.entity.Member;
+import dev.sodev.domain.member.Member;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
-import dev.sodev.repository.MemberRepository;
+import dev.sodev.domain.member.repository.MemberRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j

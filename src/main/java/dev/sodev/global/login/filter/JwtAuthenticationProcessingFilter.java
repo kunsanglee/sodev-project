@@ -1,8 +1,8 @@
 package dev.sodev.global.login.filter;
 
-import dev.sodev.domain.entity.Member;
+import dev.sodev.domain.member.Member;
 import dev.sodev.global.jwt.JwtService;
-import dev.sodev.repository.MemberRepository;
+import dev.sodev.domain.member.repository.MemberRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();//5
 
-    private final String NO_CHECK_URL = "/v1/sign-in";//1
+    private final String NO_CHECK_URL = "/v1/login";//1
 
     /**
      * 1. 리프레시 토큰이 오는 경우 -> 유효하면 AccessToken 재발급후, 필터 진행 X, 바로 튕기기

@@ -1,6 +1,6 @@
 package dev.sodev.global.aop.trace;
 
-import dev.sodev.util.SecurityUtil;
+import dev.sodev.global.util.SecurityUtil;
 import java.util.UUID;
 
 public class TraceId {
@@ -20,11 +20,11 @@ public class TraceId {
 
     private String createId() {
         try {
-            SecurityUtil.getLoginEmail();
+            SecurityUtil.getMemberEmail();
         }catch (NullPointerException | ClassCastException e ){ // 로그인 안한 사용자는 UUID 처리
             return String.format("[Anonymous: %S]",UUID.randomUUID().toString().substring(0,8));
         }
-        return SecurityUtil.getLoginEmail();
+        return SecurityUtil.getMemberEmail();
     }
 
     public TraceId createNextId() {
