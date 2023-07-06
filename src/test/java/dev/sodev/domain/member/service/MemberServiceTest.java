@@ -159,7 +159,7 @@ class MemberServiceTest {
     @Test
     @DisplayName("비밀번호를 입력하지 않았을 경우 에러반환")
     void 비밀번호가_공백인경우() {
-        // given - id가 이메일 형식이 아닌경우
+        // given
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
                 .password(null)
@@ -177,7 +177,7 @@ class MemberServiceTest {
     @Test
     @DisplayName("비밀번호 조건에 안맞을경우 에러반환")
     void 비밀번호_조건에_안맞을경우_에러반환() {
-        // given - id가 이메일 형식이 아닌경우
+        // given
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
                 .password("123")
@@ -196,7 +196,7 @@ class MemberServiceTest {
     @Test
     @DisplayName("핸드폰번호 형식에 안맞을경우 에러반환")
     void 핸드폰번호_형식에_안맞을경우_에러반환() {
-        // given - id가 이메일 형식이 아닌경우
+        // given
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
                 .password("1234!Qwerty")
@@ -215,9 +215,9 @@ class MemberServiceTest {
 
 
     @Test
-    @DisplayName("닉네임을 입력하지 않았을 경우")
-    void 닉네임이_공백일경우() {
-        // given - id가 이메일 형식이 아닌경우
+    @DisplayName("닉네임을 입력하지 않았을 경우 실패")
+    void 닉네임이_공백일경우_실패() {
+        // given
         MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
                 .email("a@naver.com")
                 .password("1234!Qwerty")

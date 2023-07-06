@@ -13,14 +13,14 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(SodevApplicationException.class)
     public ResponseEntity<?> applicationHandler(SodevApplicationException e) {
-        log.error("Error ocure {}", e.toString());
+        log.error("Error occur {}", e.toString());
         return ResponseEntity.status(e.getErrorCode().getStatus())
                 .body(Response.error(e.getErrorCode().name()));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> applicationHandler(RuntimeException e) {
-        log.error("Error ocure {}", e.toString());
+        log.error("Error occur {}", e.toString());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Response.error(ErrorCode.INTERNAL_SERVER_ERROR.getMessage()));
     }
