@@ -12,9 +12,11 @@ public interface MemberService {
 
     /**
      * 회원가입
-     * 정보수정
-     * 회원탈퇴
-     * 정보조회
+     * 정보 수정
+     * 회원 탈퇴
+     * 회원정보 조회
+     * 이메일 중복 확인
+     * 닉네임 중복 확인
      */
 
     MemberJoinResponse join(MemberJoinRequest memberJoinRequest);
@@ -28,4 +30,8 @@ public interface MemberService {
     MemberInfo getMemberInfo(Long id);
 
     MemberInfo getMyInfo();
+
+    boolean isDuplicatedEmail(String email);
+
+    boolean isDuplicatedNickName(String nickName);
 }
