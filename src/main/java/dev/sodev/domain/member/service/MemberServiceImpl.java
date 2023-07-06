@@ -22,17 +22,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class MemberServiceImpl implements MemberService{
+public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public MemberJoinResponse join(MemberJoinRequest request) {
-        // 아이디 중복일 시 에러 반환
-        memberRepository.findByEmail(request.email()).ifPresent(it -> {
-            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_ID, String.format("%s is duplicated", request.email()));
-        });
+        // 아이디 중복, 닉네임 중복일시 에러 반환
+        if (isDuplicatedEmail(request.email())) {
+            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_ID);
+        }
+
+        if (isDuplicatedNickName(request.nickName())) {
+            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_NICKNAME);
+        }
 
         // 중복이 아닐경우 이메일형식의 아이디와 비밀번호 암호화 권한은 Default(MEMBER)로 회원가입
         Member joinMember = Member.builder()
@@ -63,6 +67,11 @@ public class MemberServiceImpl implements MemberService{
 
     @Override
     public MemberUpdateResponse update(MemberUpdateRequest request) {
+
+        if (isDuplicatedNickName(request.nickName())) {
+            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_NICKNAME);
+        }
+
         Member member = getMemberBySecurity();
 
         member.updateNickName(request.nickName());
@@ -106,5 +115,17 @@ public class MemberServiceImpl implements MemberService{
     private Member getMemberBySecurity() {
         return memberRepository.findByEmail(SecurityUtil.getMemberEmail()).orElseThrow(() ->
                 new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isDuplicatedEmail(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isDuplicatedNickName(String nickName) {
+        return memberRepository.existsByNickName(nickName);
     }
 }
