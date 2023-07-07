@@ -27,9 +27,9 @@ public interface MemberService {
 
     MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal);
 
-    MemberInfo getMemberInfo(Long id);
-
     MemberInfo getMyInfo();
+
+    MemberInfo getMemberInfo(Long id);
 
     boolean isDuplicatedEmail(String email);
 

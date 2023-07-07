@@ -37,18 +37,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class MemberControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
-    @Autowired
-    EntityManager em;
-    @Autowired
-    ObjectMapper objectMapper;
-    @Autowired
-    MemberService memberService;
-    @Autowired
-    MemberRepository memberRepository;
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    @Autowired MockMvc mockMvc;
+    @Autowired EntityManager em;
+    @Autowired ObjectMapper objectMapper;
+    @Autowired MemberService memberService;
+    @Autowired MemberRepository memberRepository;
+    @Autowired PasswordEncoder passwordEncoder;
 
     private static String SIGN_UP_URL = "/v1/join";
 
