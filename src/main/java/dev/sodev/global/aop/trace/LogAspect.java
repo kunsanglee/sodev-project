@@ -13,13 +13,13 @@ public class LogAspect {
 
     private final LogTrace logTrace;
 
-    @Pointcut("execution(* dev.sodev.controller..*Controller*.*(..))")
+    @Pointcut("execution(* dev.sodev.domain.*.controller.*Controller*.*(..))")
     public void allService(){};
 
-    @Pointcut("execution(* dev.sodev.service..*Service*.*(..))")
+    @Pointcut("execution(* dev.sodev.domain.*.service.*Service*.*(..))")
     public void allRepository(){};
 
-    @Pointcut("execution(* dev.sodev.repository..*Repository*.*(..))")
+    @Pointcut("execution(* dev.sodev.domain.*.repository.*Repository*.*(..))")
     public void allController(){};
 
 
