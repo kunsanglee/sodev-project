@@ -37,6 +37,11 @@ public class Member extends BaseEntity {
     private String phone;
     private String introduce;
 
+    @Builder.Default
+    private Long follower = 0L;
+    @Builder.Default
+    private Long following = 0L;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_project_id")
     private MemberProject memberProject;
@@ -81,6 +86,22 @@ public class Member extends BaseEntity {
 
     public void destroyRefreshToken(){
         this.refreshToken = null;
+    }
+
+    public void addFollower() {
+        this.follower += 1L;
+    }
+
+    public void subFollower() {
+        this.follower -= 1L;
+    }
+
+    public void addFollowing() {
+        this.following += 1L;
+    }
+
+    public void subFollowing() {
+        this.following -= 1L;
     }
 
 

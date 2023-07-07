@@ -30,9 +30,9 @@ jwt:
   secret: local-sodev-project-2023-secret-key-1234-local-sodev-project-2023-secret-key-1234
 
   access:
-    expiration: 30
+    expiration: 300
     header: Authorization
 
   refresh:
-    expiration: 60
+    expiration: 600
     header: Authorization-refresh

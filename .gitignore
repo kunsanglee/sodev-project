@@ -7,7 +7,6 @@ build/
 
 ### 추가 ###
 .github
-.gradle
 
 ### STS ###
 .apt_generated

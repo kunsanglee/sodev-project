@@ -1,12 +1,12 @@
-package dev.sodev.domain.Follow;
+package dev.sodev.domain.follow;
 
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.member.Member;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Builder
+@Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -16,11 +16,11 @@ public class Follow extends BaseEntity {
     @Column(name = "follow_id")
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_member")
     private Member fromMember;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_member")
     private Member toMember;
 }
