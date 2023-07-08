@@ -35,6 +35,10 @@ jobs: # 하나의 job 선언하고 그 안에 여러 step들을 정의
           spring.datasource.username: ${{ secrets.DB_USERNAME }}
           spring.datasource.password: ${{ secrets.DB_PASSWORD }}
           jwt.secret: ${{ secrets.JWT_SECRET_KEY }}
+          email.host: ${{ secrets.MAIL_SERVER }}
+          email.username: ${{ secrets.MAIL_ID }}
+          email.password: ${{ secrets.MAIL_PASSWORD }}
+          email.port: ${{ secrets.MAIL_PORT }}
 
       - name: Grant execute permission for gradlew # 소스파일을 gradlew 로 빌드 할 건데 그 전에 권한 부여
         run: chmod +x ./gradlew

@@ -36,3 +36,9 @@ jwt:
   refresh:
     expiration: 600
     header: Authorization-refresh
+
+email:
+  host: ${MAIL_SERVER}
+  username: ${MAIL_ID}
+  password: ${MAIL_PASSWORD}
+  port: ${MAIL_PORT}
