@@ -7,6 +7,8 @@ import dev.sodev.domain.member.dto.response.MemberJoinResponse;
 import dev.sodev.domain.member.dto.MemberInfo;
 import dev.sodev.domain.member.dto.MemberWithdrawal;
 import dev.sodev.domain.member.dto.UpdatePassword;
+import dev.sodev.global.email.EmailRequest;
+import dev.sodev.global.email.EmailService;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.domain.member.repository.MemberRepository;
@@ -18,12 +20,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
+    private final EmailService emailService;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,6 +42,24 @@ public class MemberServiceImpl implements MemberService {
         if (isDuplicatedNickName(request.nickName())) {
             throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_NICKNAME);
         }
+
+        // 이메일 인증메일 발송 시작 ->
+        // 프론트에서 비동기로 이메일 보내고 확인 코드 입력하면 회원가입 신청할 수 있게 변경해야됨.
+        // 일단 메일 가는지 확인 OK 주석처리
+        /*String emailSignCode = String.valueOf(UUID.randomUUID()).substring(0, 8);
+        EmailRequest emailRequest = new EmailRequest(
+                request.email(),
+                request.nickName() + "님의 SODEV 회원가입 인증메일 입니다.",
+                emailSignCode
+        );
+
+        try {
+            emailService.sendEmail(emailRequest);
+        } catch (Exception e) {
+            throw new SodevApplicationException(ErrorCode.INTERNAL_SERVER_ERROR, "이메일 인증 도중 에러가 발생했습니다.");
+        }*/
+        // 이메일 인증메일 발송 끝
+
 
         // 중복이 아닐경우 이메일형식의 아이디와 비밀번호 암호화 권한은 Default(MEMBER)로 회원가입
         Member joinMember = Member.builder()
