@@ -14,11 +14,9 @@ import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -27,13 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -53,29 +47,27 @@ public class FollowControllerTest {
     @Autowired PasswordEncoder passwordEncoder;
 
     private static String SIGN_UP_URL = "/v1/join";
+    private static String LOGIN_URL = "/v1/login";
 
     private String email = "sodev@sodev.com";
     private String password = "asdf1234!";
     private String nickName = "testNick";
     private String phone = "010-1234-1234";
 
-    @Value("${jwt.access.header}")
-    private String accessHeader;
-
-    private static final String BEARER = "Bearer ";
 
     private String getAccessToken() throws Exception {
-        Map<String, String> map = new HashMap<>();
-        map.put("email", email);
-        map.put("password", password);
+        MemberLoginRequest request = MemberLoginRequest.builder()
+                .email(email)
+                .password(password)
+                .build();
 
         MvcResult result = mockMvc.perform(
-                        post("/v1/login")
+                        post(LOGIN_URL)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(map)))
+                                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk()).andReturn();
 
-        return result.getResponse().getHeader(accessHeader);
+        return result.getResponse().getHeader("Authorization");
     }
 
     private void join(String joinData) throws Exception {
@@ -110,7 +102,7 @@ public class FollowControllerTest {
         // when 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
                 post("/v1/members/"+member2.getId()+"/follow")
-                        .header(accessHeader, BEARER + accessToken)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 member2.getId()
@@ -148,7 +140,7 @@ public class FollowControllerTest {
         // 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
                 post("/v1/members/"+member2.getId()+"/follow")
-                        .header(accessHeader, BEARER + accessToken)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 member2.getId()
@@ -168,7 +160,7 @@ public class FollowControllerTest {
         // when 1번 회원이 2번 회원 팔로우 취소
         mockMvc.perform(
                 delete("/v1/members/"+member2.getId()+"/follow")
-                        .header(accessHeader, BEARER + accessToken)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 member2.getId()
@@ -191,7 +183,7 @@ public class FollowControllerTest {
         // when 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
                 post("/v1/members/"+member1.getId()+"/follow")
-                        .header(accessHeader, BEARER + accessToken)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 member1.getId()
@@ -217,7 +209,7 @@ public class FollowControllerTest {
         // when 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
                 delete("/v1/members/"+member1.getId()+"/follow")
-                        .header(accessHeader, BEARER + accessToken)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 member1.getId()

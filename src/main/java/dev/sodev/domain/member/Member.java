@@ -3,6 +3,7 @@ package dev.sodev.domain.member;
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.Images.Images;
 import dev.sodev.domain.enums.Auth;
+import dev.sodev.domain.member.dto.request.MemberJoinRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -49,11 +50,17 @@ public class Member extends BaseEntity {
     @Embedded
     private Images images;
 
-    @Column(length = 1000)
-    private String refreshToken;
-
 
     private LocalDateTime removedAt;
+
+    public static Member registerMember(MemberJoinRequest request) {
+        Member member = new Member();
+
+        member.email = request.email();
+        member.password = request.password();
+
+        return member;
+    }
 
     // 비밀번호 변경, 회원 탈퇴 시, 비밀번호를 확인하여 일치하는지 확인
     public boolean matchPassword(PasswordEncoder passwordEncoder, String checkPassword) {
@@ -78,14 +85,6 @@ public class Member extends BaseEntity {
 
     public void updateImage(Images memberImage) {
         this.images = memberImage;
-    }
-
-    public void updateRefreshToken(String refreshToken){
-        this.refreshToken = refreshToken;
-    }
-
-    public void destroyRefreshToken(){
-        this.refreshToken = null;
     }
 
     public void addFollower() {

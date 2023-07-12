@@ -7,36 +7,41 @@ import dev.sodev.domain.member.dto.response.MemberJoinResponse;
 import dev.sodev.domain.member.dto.MemberInfo;
 import dev.sodev.domain.member.dto.MemberWithdrawal;
 import dev.sodev.domain.member.dto.UpdatePassword;
-import dev.sodev.global.email.EmailRequest;
 import dev.sodev.global.email.EmailService;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.member.Member;
+import dev.sodev.global.redis.CacheName;
+import dev.sodev.global.redis.RedisService;
 import dev.sodev.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
     private final EmailService emailService;
+    private final RedisService redisService;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public MemberJoinResponse join(MemberJoinRequest request) {
         // 아이디 중복, 닉네임 중복일시 에러 반환
         if (isDuplicatedEmail(request.email())) {
-            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_ID);
+            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_EMAIL);
         }
 
         if (isDuplicatedNickName(request.nickName())) {
@@ -74,21 +79,23 @@ public class MemberServiceImpl implements MemberService {
         return new MemberJoinResponse("회원가입이 완료되었습니다.");
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public MemberInfo getMyInfo() {
+    @Cacheable(value = CacheName.INFO, key = "#p0", unless = "#result == null")
+    public MemberInfo getMyInfo(String email) {
         Member member = getMemberBySecurity();
         return MemberInfo.from(member);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public MemberInfo getMemberInfo(Long id) {
+    @Cacheable(value = CacheName.INFO, key = "#p1", unless = "#result == null")
+    public MemberInfo getMemberInfo(Long id, String email) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
         return MemberInfo.from(member);
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = CacheName.INFO, key = "#p0.email()")
     public MemberUpdateResponse update(MemberUpdateRequest request) {
 
         if (isDuplicatedNickName(request.nickName())) {
@@ -102,11 +109,17 @@ public class MemberServiceImpl implements MemberService {
         member.updateIntroduce(request.introduce());
         member.updateImage(request.memberImage());
 
+        redisService.deleteValues(CacheName.EMAIL + "::" + request.email());
+        log.info("===============update-deleteValues");
+        log.info("===============update-member={}", memberRepository.findByEmail(request.email()).orElseThrow().getNickName());
+
         return new MemberUpdateResponse("회원정보 수정이 완료됐습니다.");
     }
 
     @Override
-    public MemberUpdateResponse updatePassword(UpdatePassword updatePassword) {
+    @Transactional
+    @CacheEvict(value = CacheName.INFO, key = "#p1")
+    public MemberUpdateResponse updatePassword(UpdatePassword updatePassword, String email) {
         Member member = getMemberBySecurity();
         String checkPassword = updatePassword.checkPassword();
         String toBePassword = updatePassword.toBePassword();
@@ -117,19 +130,27 @@ public class MemberServiceImpl implements MemberService {
 
         member.updatePassword(passwordEncoder, toBePassword);
 
+        redisService.deleteValues(CacheName.EMAIL + "::" + email);
+        log.info("===============updatePassword-deleteValues");
+
         return new MemberUpdateResponse("비밀번호 변경이 완료됐습니다.");
     }
 
 
     @Override
-    public MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal) {
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheName.EMAIL, key = "#p1"),
+            @CacheEvict(value = CacheName.MEMBER, key = "#p1"),
+            @CacheEvict(value = CacheName.INFO, key = "#p1"),
+    })
+    public MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal, String email) {
         Member member = getMemberBySecurity();
         String checkPassword = memberWithdrawal.checkPassword();
         if (!member.matchPassword(passwordEncoder, checkPassword)) {
             throw new SodevApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
-        member.destroyRefreshToken();
         memberRepository.delete(member);
 
         return new MemberUpdateResponse("회원 탈퇴가 완료됐습니다.");
@@ -140,7 +161,6 @@ public class MemberServiceImpl implements MemberService {
                 new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
-    @Transactional(readOnly = true)
     @Override
     public boolean isDuplicatedEmail(String email) {
         return memberRepository.existsByEmail(email);

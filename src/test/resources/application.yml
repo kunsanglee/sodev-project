@@ -1,3 +1,8 @@
+server:
+  servlet:
+    encoding:
+      force-response: true
+
 spring:
   profiles:
     include: jwt
@@ -27,13 +32,19 @@ logging.level:
 logging-module:
   version: 0.0.4
 
+  data:
+    redis:
+      host: localhost #  Redis 서버가 다른 호스트에서 실행 중이라면 해당 호스트의 IP 주소나 도메인 이름을 여기에 지정
+      port: 6379
+      timeout: 6 #  Redis 클라이언트가 Redis 서버에 연결하기 위해 대기하는 시간
+
 jwt:
-  secret: local-sodev-project-2023-secret-key-1234-local-sodev-project-2023-secret-key-1234
+  secret: fjdklsajfidsa213312hjk123hj231ljkl123hjlfdhkalfs9132hjk231hjk123hjk213hjk1234hj12hjk4124
+  refresh-token-validity-in-seconds: 1209600 # 14일
+  access-token-validity-in-seconds: 43200 # 12시간
 
-  access:
-    expiration: 30
-    header: Authorization
-
-  refresh:
-    expiration: 60
-    header: Authorization-refresh
+email:
+  host: ${MAIL_SERVER}
+  username: ${MAIL_ID}
+  password: ${MAIL_PASSWORD}
+  port: ${MAIL_PORT}

@@ -2,7 +2,9 @@ package dev.sodev.domain.member.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 
+@Builder
 public record UpdatePassword(
         @NotBlank(message = "비밀번호를 입력해주세요.")
         @Pattern(regexp="(?=.*[0-9])(?=.*[a-z])(?=.*\\W)(?=\\S+$).{6,12}",
