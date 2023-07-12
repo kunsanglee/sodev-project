@@ -1,3 +1,8 @@
+server:
+  servlet:
+    encoding:
+      force-response: true
+
 spring:
   profiles:
     include: jwt
@@ -28,12 +33,12 @@ logging-module:
   version: 0.0.4
 
 jwt:
-  secret: local-sodev-project-2023-secret-key-1234-local-sodev-project-2023-secret-key-1234
+  secret: fjdklsajfidsa213312hjk123hj231ljkl123hjlfdhkalfs9132hjk231hjk123hjk213hjk1234hj12hjk4124
+  refresh-token-validity-in-seconds: 1209600 # 14일
+  access-token-validity-in-seconds: 43200 # 12시간
 
-  access:
-    expiration: 30
-    header: Authorization
-
-  refresh:
-    expiration: 60
-    header: Authorization-refresh
+email:
+  host: ${MAIL_SERVER}
+  username: ${MAIL_ID}
+  password: ${MAIL_PASSWORD}
+  port: ${MAIL_PORT}
