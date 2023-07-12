@@ -5,7 +5,7 @@ import dev.sodev.domain.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import static dev.sodev.domain.Follow.QFollow.follow;
+import static dev.sodev.domain.follow.QFollow.follow;
 
 
 @RequiredArgsConstructor

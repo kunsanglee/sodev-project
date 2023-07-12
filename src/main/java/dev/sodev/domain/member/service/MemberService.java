@@ -23,13 +23,13 @@ public interface MemberService {
 
     MemberUpdateResponse update(MemberUpdateRequest memberInfoRequest);
 
-    MemberUpdateResponse updatePassword(UpdatePassword updatePassword);
+    MemberUpdateResponse updatePassword(UpdatePassword updatePassword, String memberEmail);
 
-    MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal);
+    MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal, String memberEmail);
 
-    MemberInfo getMyInfo();
+    MemberInfo getMyInfo(String memberEmail);
 
-    MemberInfo getMemberInfo(Long id);
+    MemberInfo getMemberInfo(Long id, String memberEmail);
 
     boolean isDuplicatedEmail(String email);
 

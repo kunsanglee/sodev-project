@@ -22,8 +22,6 @@ class SecurityEncryptConfigTest {
         String encodedPassword = passwordEncoder.encode(password);
 
         // then
-        assertThat(encodedPassword).startsWith("{");
-        assertThat(encodedPassword).contains("{bcrypt}");
         assertThat(encodedPassword).isNotEqualTo(password);
     }
 

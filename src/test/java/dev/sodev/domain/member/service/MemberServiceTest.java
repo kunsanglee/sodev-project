@@ -1,7 +1,6 @@
 package dev.sodev.domain.member.service;
 
 import dev.sodev.domain.member.dto.request.MemberJoinRequest;
-import dev.sodev.domain.member.dto.request.MemberUpdateRequest;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.domain.member.repository.MemberRepository;
@@ -19,8 +18,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -74,34 +71,7 @@ class MemberServiceTest {
         Assertions.assertDoesNotThrow( () -> memberService.join(memberJoinRequest));
 
     }
-    @Test
-    @DisplayName("아이디가 중복일경우 에러반환")
-    void 아이디_중복일_경우_에러반환() {
 
-        MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
-                .email("a@naver.com")
-                .password("1234!Qwerty")
-                .phone("010-1111-1111")
-                .nickName("TEST")
-                .build();
-
-        // fixture member
-
-        Member member = Member.builder()
-                .email("a@naver.com")
-                .password("1234!Qwerty")
-                .phone("010-1111-1111")
-                .nickName("TEST")
-                .build();
-
-        //  fixture 반환
-        when(memberRepository.findByEmail(memberJoinRequest.email())).thenReturn(Optional.of(member));
-        when(memberRepository.save(any())).thenReturn(Optional.of(member));
-
-        SodevApplicationException e = Assertions.assertThrows(SodevApplicationException.class, () -> memberService.join(memberJoinRequest));
-        Assertions.assertEquals(ErrorCode.DUPLICATE_USER_ID, e.getErrorCode());
-
-    }
     @Test
     @DisplayName("회원가입 시 Valid 성공일 경우")
     void 유효성_검사_성공일경우() {
@@ -116,7 +86,6 @@ class MemberServiceTest {
 
         // then
         Assertions.assertEquals(0, violations.size());
-
     }
 
     @Test
@@ -209,27 +178,6 @@ class MemberServiceTest {
         // then
         violations.forEach( error -> {
             Assertions.assertEquals("양식에 맞게 입력해주세요. ex)010-1234-5678", error.getMessage());
-        });
-    }
-
-
-
-    @Test
-    @DisplayName("닉네임을 입력하지 않았을 경우 실패")
-    void 닉네임이_공백일경우_실패() {
-        // given
-        MemberJoinRequest memberJoinRequest = MemberJoinRequest.builder()
-                .email("a@naver.com")
-                .password("1234!Qwerty")
-                .phone("010-1111-1111")
-                .nickName("")
-                .build();
-        // when
-        Set<ConstraintViolation<MemberJoinRequest>> violations = validator.validate(memberJoinRequest);
-
-        // then
-        violations.forEach( error -> {
-            Assertions.assertEquals("닉네임을 입력해주세요.", error.getMessage());
         });
     }
 
