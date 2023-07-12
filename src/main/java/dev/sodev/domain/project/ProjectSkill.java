@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class ProjectSkill extends BaseEntity {
+public class ProjectSkill {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "project_skill_id")

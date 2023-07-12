@@ -29,4 +29,7 @@ public class MemberProject extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ProjectState state;
 
+    public static MemberProject of(Member member, Project project)      {
+        return new MemberProject(null, member,project,ProjectState.RECRUIT);
+    }
 }
