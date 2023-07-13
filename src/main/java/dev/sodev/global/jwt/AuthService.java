@@ -1,6 +1,8 @@
 package dev.sodev.global.jwt;
 
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.global.redis.CacheName;
 import dev.sodev.global.redis.RedisService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,7 +33,7 @@ public class AuthService {
 
     // 로그인: 인증 정보 저장 및 Bearer 토큰 발급
     @Transactional
-    @Cacheable(value = CacheName.MEMBER, key = "#p0.email()", unless = "#result == null")
+    @Cacheable(value = CacheName.MEMBER, key = "#request.email()", unless = "#result == null")
     public TokenDto login(MemberLoginRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.email(), request.password());
@@ -46,27 +47,13 @@ public class AuthService {
 
     // 로그아웃
     @Transactional
-    @CacheEvict(value = CacheName.MEMBER, key = "#p1")
-    public void logout(String requestAccessTokenInHeader, String email) {
-        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        String principal = getPrincipal(requestAccessToken);
+    @CacheEvict(value = CacheName.MEMBER, key = "#email")
+    public void logout(String accessToken, String refreshToken, String email) {
 
-        // Redis에 저장되어 있는 RT 삭제
-//        String refreshTokenInRedis = redisService.getValues("RT(" + SERVER + "):" + principal);
-//        if (refreshTokenInRedis != null) {
-//            redisService.deleteValues("RT(" + SERVER + "):" + principal);
-//        }
+        // 해당 유저의 accessToken, refreshToken 을 블랙리스트에 추가하고 추후 해당 토큰으로 요청시 에러 반환.
+        redisService.setBlackList(accessToken.substring(7), "accessToken", 1800);
+        redisService.setBlackList(refreshToken.substring(14), "refreshToken",60400);
 
-//        String refreshTokenInRedis = redisService.getValues(CacheName.MEMBER + "::" + principal);
-//        if (refreshTokenInRedis != null) {
-//            redisService.deleteValues(CacheName.MEMBER + "::" + principal);
-//        }
-
-        // Redis에 로그아웃 처리한 AT 저장
-        long expiration = jwtTokenProvider.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
-        redisService.setValuesWithTimeout(requestAccessToken,
-                "logout",
-                expiration);
     }
 
     // AT가 만료일자만 초과한 유효한 토큰인지 검사
@@ -83,24 +70,21 @@ public class AuthService {
         Authentication authentication = jwtTokenProvider.getAuthentication(requestAccessToken);
         String principal = getPrincipal(requestAccessToken);
 
-//        String refreshTokenInRedis = redisService.getValues("RT(" + SERVER + "):" + principal);
         String refreshTokenInRedis = redisService.getValues(CacheName.MEMBER + "::" + principal);
         if (refreshTokenInRedis == null) { // Redis에 저장되어 있는 RT가 없을 경우
-            return null; // -> 재로그인 요청
+            throw new SodevApplicationException(ErrorCode.ACCESS_UNAUTHORIZED); // -> 재로그인 요청
         }
 
         // 요청된 RT의 유효성 검사 & Redis에 저장되어 있는 RT와 같은지 비교
-        if(!jwtTokenProvider.validateRefreshToken(requestRefreshToken) || !refreshTokenInRedis.equals(requestRefreshToken)) {
-//            redisService.deleteValues("RT(" + SERVER + "):" + principal); // 탈취 가능성 -> 삭제
+        if(!jwtTokenProvider.validateToken(requestRefreshToken) || !refreshTokenInRedis.equals(requestRefreshToken)) {
             redisService.deleteValues(CacheName.MEMBER + "::" + principal); // 탈취 가능성 -> 삭제
-            return null; // -> 재로그인 요청
+            throw new SodevApplicationException(ErrorCode.ACCESS_UNAUTHORIZED); // -> 재로그인 요청
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String authorities = getAuthorities(authentication);
 
         // 토큰 재발급 및 Redis 업데이트
-//        redisService.deleteValues("RT(" + SERVER + "):" + principal); // 기존 RT 삭제
         redisService.deleteValues(CacheName.MEMBER + "::" + principal); // 기존 RT 삭제
         TokenDto tokenDto = jwtTokenProvider.createToken(principal, authorities);
         saveRefreshToken(SERVER, principal, tokenDto.refreshToken());
@@ -111,9 +95,6 @@ public class AuthService {
     @Transactional
     public TokenDto generateToken(String provider, String email, String authorities) {
         // RT가 이미 있을 경우
-//        if(redisService.getValues("RT(" + provider + "):" + email) != null) {
-//            redisService.deleteValues("RT(" + provider + "):" + email); // 삭제
-//        }
         if(redisService.getValues("login::" + email) != null) {
             redisService.deleteValues("login::" + email); // 삭제
         }
@@ -127,7 +108,6 @@ public class AuthService {
     // RT를 Redis에 저장
     @Transactional
     public void saveRefreshToken(String provider, String principal, String refreshToken) {
-//        redisService.setValuesWithTimeout("RT(" + provider + "):" + principal, refreshToken, jwtTokenProvider.getTokenExpirationTime(refreshToken));
         redisService.setValuesWithTimeout(CacheName.MEMBER + "::" + principal, refreshToken, jwtTokenProvider.getTokenExpirationTime(refreshToken));
     }
 
@@ -148,6 +128,6 @@ public class AuthService {
         if (requestAccessTokenInHeader != null && requestAccessTokenInHeader.startsWith("Bearer ")) {
             return requestAccessTokenInHeader.substring(7);
         }
-        return null;
+        throw new SodevApplicationException(ErrorCode.INVALID_TOKEN);
     }
 }
