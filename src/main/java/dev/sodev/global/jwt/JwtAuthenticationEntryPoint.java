@@ -39,7 +39,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             throw new SodevApplicationException(ErrorCode.INTERNAL_SERVER_ERROR);
         } else {
             response.setCharacterEncoding("utf-8");
-            response.sendError(401, "잘못된 접근입니다.");
+            response.sendError(401, "인증에 실패했습니다.");
         }
 
 

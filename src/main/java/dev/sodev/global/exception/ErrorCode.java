@@ -17,11 +17,12 @@ public enum ErrorCode {
     FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글 입니다."),
 
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "유효하지 않는 비밀번호 입니다."),
-    UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 후에 이용하실수 있습니다."),
+    UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 후에 이용하실 수 있습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, "관리자만 접근할 수 있습니다."),
-    ACCESS_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "로그인 한 후에 요청해주세요."),
-    BAD_CREDENTIAL(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 맞지 않습니다.")
+    ACCESS_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "다시 로그인 한 후에 요청해주세요."),
+    BAD_CREDENTIAL(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 맞지 않습니다."),
+    WITHDRAWAL_USER(HttpStatus.UNAUTHORIZED, "이미 탈퇴한 회원입니다."),
     ;
 
     private HttpStatus status;
