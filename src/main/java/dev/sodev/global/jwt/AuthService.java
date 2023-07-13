@@ -8,6 +8,7 @@ import dev.sodev.global.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -42,7 +43,7 @@ public class AuthService {
                 .authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return generateToken(SERVER, authentication.getName(), getAuthorities(authentication));
+        return generateToken(authentication.getName(), getAuthorities(authentication));
     }
 
     // 로그아웃
@@ -51,8 +52,8 @@ public class AuthService {
     public void logout(String accessToken, String refreshToken, String email) {
 
         // 해당 유저의 accessToken, refreshToken 을 블랙리스트에 추가하고 추후 해당 토큰으로 요청시 에러 반환.
-        redisService.setBlackList(accessToken.substring(7), "accessToken", 1800);
-        redisService.setBlackList(refreshToken.substring(14), "refreshToken",60400);
+        redisService.setBlackList(accessToken.substring(7), "accessToken", 60*12*7);
+        redisService.setBlackList(refreshToken.substring(14), "refreshToken",60*12*30);
 
     }
 
@@ -64,7 +65,8 @@ public class AuthService {
 
     // 토큰 재발급: validate 메서드가 true 반환할 때만 사용 -> AT, RT 재발급
     @Transactional
-    public TokenDto reissue(String requestAccessTokenInHeader, String requestRefreshToken) {
+    @CachePut(value = CacheName.MEMBER, key = "#email")
+    public TokenDto reissue(String requestAccessTokenInHeader, String requestRefreshToken, String email) {
         String requestAccessToken = resolveToken(requestAccessTokenInHeader);
 
         Authentication authentication = jwtTokenProvider.getAuthentication(requestAccessToken);
@@ -76,7 +78,7 @@ public class AuthService {
         }
 
         // 요청된 RT의 유효성 검사 & Redis에 저장되어 있는 RT와 같은지 비교
-        if(!jwtTokenProvider.validateToken(requestRefreshToken) || !refreshTokenInRedis.equals(requestRefreshToken)) {
+        if(!jwtTokenProvider.validateToken(requestRefreshToken) || !refreshTokenInRedis.contains(requestRefreshToken)) {
             redisService.deleteValues(CacheName.MEMBER + "::" + principal); // 탈취 가능성 -> 삭제
             throw new SodevApplicationException(ErrorCode.ACCESS_UNAUTHORIZED); // -> 재로그인 요청
         }
@@ -85,31 +87,29 @@ public class AuthService {
         String authorities = getAuthorities(authentication);
 
         // 토큰 재발급 및 Redis 업데이트
-        redisService.deleteValues(CacheName.MEMBER + "::" + principal); // 기존 RT 삭제
-        TokenDto tokenDto = jwtTokenProvider.createToken(principal, authorities);
-        saveRefreshToken(SERVER, principal, tokenDto.refreshToken());
+        TokenDto tokenDto = generateToken(authentication.getName(), getAuthorities(authentication));
         return tokenDto;
     }
 
     // 토큰 발급
     @Transactional
-    public TokenDto generateToken(String provider, String email, String authorities) {
+    public TokenDto generateToken(String email, String authorities) {
         // RT가 이미 있을 경우
-        if(redisService.getValues("login::" + email) != null) {
-            redisService.deleteValues("login::" + email); // 삭제
+        if (redisService.getValues(CacheName.MEMBER + "::" + email) != null) {
+            redisService.deleteValues(CacheName.MEMBER + "::" + email); // 삭제
         }
 
         // AT, RT 생성 및 Redis에 RT 저장
         TokenDto tokenDto = jwtTokenProvider.createToken(email, authorities);
-        saveRefreshToken(provider, email, tokenDto.refreshToken());
+//        saveRefreshToken(email, tokenDto.refreshToken());
         return tokenDto;
     }
 
     // RT를 Redis에 저장
-    @Transactional
-    public void saveRefreshToken(String provider, String principal, String refreshToken) {
-        redisService.setValuesWithTimeout(CacheName.MEMBER + "::" + principal, refreshToken, jwtTokenProvider.getTokenExpirationTime(refreshToken));
-    }
+//    @Transactional
+//    public void saveRefreshToken(String principal, String refreshToken) {
+//        redisService.setValuesWithTimeout(CacheName.MEMBER + "::" + principal, refreshToken, jwtTokenProvider.getTokenExpirationTime(refreshToken));
+//    }
 
     // 권한 이름 가져오기
     public String getAuthorities(Authentication authentication) {

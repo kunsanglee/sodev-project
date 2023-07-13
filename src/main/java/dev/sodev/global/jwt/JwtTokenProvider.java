@@ -142,6 +142,7 @@ public class JwtTokenProvider implements InitializingBean {
      */
     public boolean validateToken(String token) {
         try {
+            log.info("token={}", token);
             Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token);
             log.info("validate 들어옴");
             if (redisService.hasKeyBlackList(token)) {
@@ -166,7 +167,7 @@ public class JwtTokenProvider implements InitializingBean {
     public boolean validateAccessToken(String accessToken) {
         try {
             if (redisService.getValues(accessToken) != null // NPE 방지
-                    || redisService.hasKeyBlackList(accessToken)) { // 로그아웃 했을 경우
+                    || redisService.hasKeyBlackList(accessToken)) { // 로그아웃, 회원탈퇴한 경우
                 throw new SodevApplicationException(ErrorCode.ACCESS_UNAUTHORIZED);
             }
             Jwts.parserBuilder()

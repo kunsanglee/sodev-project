@@ -67,9 +67,9 @@ public class MemberController {
 
     // 토큰 재발급
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@CookieValue(name = "refresh-token") String requestRefreshToken,
-                                     @RequestHeader("Authorization") String requestAccessToken) {
-        TokenDto reissuedTokenDto = authService.reissue(requestAccessToken, requestRefreshToken);
+    public ResponseEntity<?> reissue(@RequestHeader("Authorization") String requestAccessToken,
+                                     @CookieValue(name = "refresh-token") String requestRefreshToken) {
+        TokenDto reissuedTokenDto = authService.reissue(requestAccessToken, requestRefreshToken, SecurityUtil.getMemberEmail());
 
         if (reissuedTokenDto != null) { // 토큰 재발급 성공
             // RT 저장

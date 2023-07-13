@@ -34,7 +34,7 @@ spring:
 
 jwt:
   secret: fjdklsajfidsa213312hjk123hj231ljkl123hjlfdhkalfs9132hjk231hjk123hjk213hjk1234hj12hjk4124
-  refresh-token-validity-in-seconds: 1209600 # 14일
+  refresh-token-validity-in-seconds: 129600 # 3일
   access-token-validity-in-seconds: 43200 # 12시간
 
 logging.level:
