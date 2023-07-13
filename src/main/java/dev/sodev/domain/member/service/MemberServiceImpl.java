@@ -80,14 +80,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Cacheable(value = CacheName.INFO, key = "#p0", unless = "#result == null")
+    @Cacheable(value = CacheName.INFO, key = "#email", unless = "#result == null")
     public MemberInfo getMyInfo(String email) {
         Member member = getMemberBySecurity();
         return MemberInfo.from(member);
     }
 
     @Override
-    @Cacheable(value = CacheName.INFO, key = "#p1", unless = "#result == null")
+    @Cacheable(value = CacheName.INFO, key = "#email", unless = "#result == null")
     public MemberInfo getMemberInfo(Long id, String email) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
         return MemberInfo.from(member);
@@ -95,7 +95,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheName.INFO, key = "#p0.email()")
+    @CacheEvict(value = {CacheName.EMAIL, CacheName.INFO}, key = "#request.email()")
     public MemberUpdateResponse update(MemberUpdateRequest request) {
 
         if (isDuplicatedNickName(request.nickName())) {
@@ -109,16 +109,12 @@ public class MemberServiceImpl implements MemberService {
         member.updateIntroduce(request.introduce());
         member.updateImage(request.memberImage());
 
-        redisService.deleteValues(CacheName.EMAIL + "::" + request.email());
-        log.info("===============update-deleteValues");
-        log.info("===============update-member={}", memberRepository.findByEmail(request.email()).orElseThrow().getNickName());
-
         return new MemberUpdateResponse("회원정보 수정이 완료됐습니다.");
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheName.INFO, key = "#p1")
+    @CacheEvict(value = {CacheName.EMAIL, CacheName.INFO}, key = "#email")
     public MemberUpdateResponse updatePassword(UpdatePassword updatePassword, String email) {
         Member member = getMemberBySecurity();
         String checkPassword = updatePassword.checkPassword();
@@ -130,20 +126,13 @@ public class MemberServiceImpl implements MemberService {
 
         member.updatePassword(passwordEncoder, toBePassword);
 
-        redisService.deleteValues(CacheName.EMAIL + "::" + email);
-        log.info("===============updatePassword-deleteValues");
-
         return new MemberUpdateResponse("비밀번호 변경이 완료됐습니다.");
     }
 
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = CacheName.EMAIL, key = "#p1"),
-            @CacheEvict(value = CacheName.MEMBER, key = "#p1"),
-            @CacheEvict(value = CacheName.INFO, key = "#p1"),
-    })
+    @CacheEvict(value = {CacheName.EMAIL, CacheName.MEMBER, CacheName.INFO}, key = "#email")
     public MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal, String email) {
         Member member = getMemberBySecurity();
         String checkPassword = memberWithdrawal.checkPassword();

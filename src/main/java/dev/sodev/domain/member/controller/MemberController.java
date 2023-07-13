@@ -101,8 +101,8 @@ public class MemberController {
 
     // 로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String requestAccessToken) {
-        authService.logout(requestAccessToken, SecurityUtil.getMemberEmail());
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String requestAccessToken, @RequestHeader("Cookie") String requestRefreshToken) {
+        authService.logout(requestAccessToken, requestRefreshToken, SecurityUtil.getMemberEmail());
         ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
                 .maxAge(0)
                 .path("/")
@@ -139,7 +139,10 @@ public class MemberController {
     }
 
     @DeleteMapping("/members")
-    public Response<MemberUpdateResponse> withdrawalMember(@RequestBody @Valid MemberWithdrawal memberWithdrawal) {
+    public Response<MemberUpdateResponse> withdrawalMember(@RequestBody @Valid MemberWithdrawal memberWithdrawal,
+                                                           @RequestHeader("Authorization") String requestAccessToken,
+                                                           @RequestHeader("Cookie") String requestRefreshToken) {
+        authService.logout(requestAccessToken, requestRefreshToken, SecurityUtil.getMemberEmail());
         MemberUpdateResponse response = memberService.withdrawal(memberWithdrawal, SecurityUtil.getMemberEmail());
         return Response.success(response);
     }
