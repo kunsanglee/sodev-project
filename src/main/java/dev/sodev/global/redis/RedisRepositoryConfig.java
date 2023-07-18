@@ -18,9 +18,10 @@ public class RedisRepositoryConfig {
 
     private final RedisProperties redisProperties;
 
-
-    // RedisConnectionFactory는 Redis 서버와의 연결을 관리하는 팩토리입니다.
-    // LettuceConnectionFactory는 Lettuce 클라이언트를 사용하여 Redis 연결을 설정합니다.
+    /**
+     * RedisConnectionFactory는 Redis 서버와의 연결을 관리하는 팩토리입니다.
+     * LettuceConnectionFactory는 Lettuce 클라이언트를 사용하여 Redis 연결을 설정합니다.
+     */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
@@ -34,15 +35,6 @@ public class RedisRepositoryConfig {
      * GenericJackson2JsonRedisSerializer는 Redis에 저장되는 객체를 JSON 형식으로 직렬화하고, 역직렬화할 수 있도록 합니다.
      * @return
      */
-//    @Bean
-//    public RedisTemplate<String, Object> redisTemplate() {
-//        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-//        redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new StringRedisSerializer());
-//        redisTemplate.setConnectionFactory(redisConnectionFactory());
-//        return redisTemplate;
-//    }
-
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
