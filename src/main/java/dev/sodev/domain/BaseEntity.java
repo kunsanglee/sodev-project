@@ -30,10 +30,12 @@ public class BaseEntity {
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
+        createdBy = this.createdBy;
     }
 
     @PreUpdate
     public void preUpdate() {
         modifiedAt = LocalDateTime.now();
+        modifiedBy = this.modifiedBy;
     }
 }

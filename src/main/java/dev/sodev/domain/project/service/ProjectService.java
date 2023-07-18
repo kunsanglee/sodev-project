@@ -1,11 +1,12 @@
 package dev.sodev.domain.project.service;
 
-import dev.sodev.domain.project.Project;
+import dev.sodev.domain.enums.SearchType;
+import dev.sodev.domain.project.dto.projectDTO;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
-import dev.sodev.domain.project.dto.requset.ProjectRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import dev.sodev.domain.skill.Skill;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -21,15 +22,17 @@ public interface ProjectService {
 
     List<ProjectResponse> projectList();
 
-    ProjectResponse selectProject(ProjectRequest request);
+    ProjectResponse selectProject(Long projectId);
 
     ProjectResponse createProject(ProjectInfoRequest request);
 
-    ProjectResponse updateProject(ProjectInfoRequest request);
+    ProjectResponse updateProject(Long projectId,ProjectInfoRequest request);
 
-    ProjectResponse deleteProject(ProjectRequest request);
+    ProjectResponse deleteProject(Long projectId);
 
     List<Skill> findAndSaveSkill(List<String> skills);
+
+    Page<projectDTO> searchProject(SearchType searchType, String keyword,List<String> skillSet, Pageable pageable);
 
 
 }

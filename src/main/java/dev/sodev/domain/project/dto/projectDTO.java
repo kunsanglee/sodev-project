@@ -11,7 +11,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class projectDTO {
-        private Integer be;
+    private Long projectId;
+    private Integer be;
     private Integer fe;
     private LocalDateTime startDate;
     private LocalDateTime endDate;

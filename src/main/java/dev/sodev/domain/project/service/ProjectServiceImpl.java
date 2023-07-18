@@ -1,5 +1,6 @@
 package dev.sodev.domain.project.service;
 
+import dev.sodev.domain.enums.SearchType;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.member.repository.MemberProjectRepository;
@@ -7,7 +8,6 @@ import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.project.Project;
 import dev.sodev.domain.project.dto.projectDTO;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
-import dev.sodev.domain.project.dto.requset.ProjectRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import dev.sodev.domain.project.repository.ProjectRepository;
 import dev.sodev.domain.project.repository.ProjectSkillRepository;
@@ -18,6 +18,8 @@ import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -43,12 +45,8 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public ProjectResponse selectProject(ProjectRequest projectRequest) {
-        Long projectId = projectRequest.projectId();
-
+    public ProjectResponse selectProject(Long projectId) {
         List<projectDTO> project = projectSkillRepository.findProject(projectId);
-
-
         return ProjectResponse.of(project);
     }
 
@@ -77,14 +75,14 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public ProjectResponse updateProject(ProjectInfoRequest request) {
+    public ProjectResponse updateProject(Long projectId,ProjectInfoRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Member member = memberRepository.getReferenceByEmail(authentication.getName());
         if(member == null) {
             throw new SodevApplicationException(ErrorCode.UNAUTHORIZED_USER);
         }
-        Project project = projectRepository.findById(request.projectId()).orElseThrow( () -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+        Project project = projectRepository.findById(projectId).orElseThrow( () -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
         project.setBe(request.be());
         project.setFe(request.fe());
         project.setTitle(request.title());
@@ -96,14 +94,14 @@ public class ProjectServiceImpl implements ProjectService{
         projectRepository.save(project);
         List<Skill> skills = findAndSaveSkill(request.skillSet());
         skillRepository.usagePlus(skills);
-        projectSkillRepository.deleteAllByProjectId(request.projectId());
-        projectSkillRepository.saveAll(skills, project.getId() );
+        projectSkillRepository.deleteAllByProjectId(projectId);
+        projectSkillRepository.saveAll(skills, projectId );
 
         return ProjectResponse.of("글 수정이 완료되었습니다.");
     }
 
     @Override
-    public ProjectResponse deleteProject(ProjectRequest request) {
+    public ProjectResponse deleteProject(Long projectId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Member member = memberRepository.getReferenceByEmail(authentication.getName());
@@ -111,14 +109,29 @@ public class ProjectServiceImpl implements ProjectService{
             throw new SodevApplicationException(ErrorCode.UNAUTHORIZED_USER);
         }
         // member_project, project, project_skill 다 삭제
-        memberProjectRepository.deleteAllByProjectId(request.projectId());
-        projectRepository.deleteById(request.projectId());
-        projectSkillRepository.deleteAllByProjectId(request.projectId());
+        memberProjectRepository.deleteAllByProjectId(projectId);
+        projectRepository.deleteById(projectId);
+        projectSkillRepository.deleteAllByProjectId(projectId);
         return ProjectResponse.of("글 삭제가 완료되었습니다.");
     }
 
     @Override
     public List<Skill> findAndSaveSkill(List<String> skills) {
         return skills.stream().map( skill -> skillRepository.findSkillByName(skill).orElseGet( () -> skillRepository.save(Skill.of(skill)))).toList();
+    }
+
+    @Override
+    public Page<projectDTO> searchProject(SearchType searchType,String keyword,List<String> skillSet, Pageable pageable) {
+        // 키워드가 없을 경우 그냥 상태가 RECRUIT 인 프로젝트 최신작성순으로 반환
+        if (keyword.isBlank() && skillSet.isEmpty()) {
+            return projectSkillRepository.searchAll(pageable);
+        }
+        return switch (searchType) {
+            case EMAIL -> projectSkillRepository.searchFromEmail(keyword,skillSet,pageable);
+            case TITLE -> projectSkillRepository.searchFromTitle(keyword, skillSet,pageable);
+            case CONTENT -> projectSkillRepository.searchFromContent(keyword,skillSet, pageable);
+            case SKILL -> projectSkillRepository.searchFromSkill(skillSet, pageable);
+            case NICKNAME -> null;
+        };
     }
 }

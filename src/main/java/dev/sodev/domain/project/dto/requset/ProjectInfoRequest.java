@@ -11,7 +11,6 @@ import java.util.List;
 
 public record ProjectInfoRequest (
 
-        Long projectId,
         @NotBlank(message = "인원수를 입력해주세요.")
         Integer be,
         @NotBlank(message = "인원수를 입력해주세요.")
