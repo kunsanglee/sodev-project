@@ -5,7 +5,6 @@ import dev.sodev.domain.member.dto.request.MemberJoinRequest;
 import dev.sodev.domain.member.dto.response.MemberUpdateResponse;
 import dev.sodev.domain.member.dto.response.MemberJoinResponse;
 import dev.sodev.domain.member.dto.MemberInfo;
-import dev.sodev.domain.member.dto.MemberWithdrawal;
 import dev.sodev.domain.member.dto.UpdatePassword;
 import dev.sodev.global.email.EmailService;
 import dev.sodev.global.exception.ErrorCode;
@@ -13,17 +12,15 @@ import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.global.redis.CacheName;
-import dev.sodev.global.redis.RedisService;
-import dev.sodev.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static dev.sodev.global.security.utils.SecurityUtil.getMemberEmail;
 
 @Slf4j
 @Service
@@ -32,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final EmailService emailService;
-    private final RedisService redisService;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -80,22 +76,19 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Cacheable(value = CacheName.INFO, key = "#email", unless = "#result == null")
-    public MemberInfo getMyInfo(String email) {
+    public MemberInfo getMyInfo() {
         Member member = getMemberBySecurity();
         return MemberInfo.from(member);
     }
 
     @Override
-    @Cacheable(value = CacheName.INFO, key = "#email", unless = "#result == null")
-    public MemberInfo getMemberInfo(Long id, String email) {
+    public MemberInfo getMemberInfo(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
         return MemberInfo.from(member);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {CacheName.EMAIL, CacheName.INFO}, key = "#request.email()")
     public MemberUpdateResponse update(MemberUpdateRequest request) {
 
         if (isDuplicatedNickName(request.nickName())) {
@@ -114,8 +107,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {CacheName.EMAIL, CacheName.INFO}, key = "#email")
-    public MemberUpdateResponse updatePassword(UpdatePassword updatePassword, String email) {
+    public MemberUpdateResponse updatePassword(UpdatePassword updatePassword) {
         Member member = getMemberBySecurity();
         String checkPassword = updatePassword.checkPassword();
         String toBePassword = updatePassword.toBePassword();
@@ -129,24 +121,8 @@ public class MemberServiceImpl implements MemberService {
         return new MemberUpdateResponse("비밀번호 변경이 완료됐습니다.");
     }
 
-
-    @Override
-    @Transactional
-    @CacheEvict(value = {CacheName.EMAIL, CacheName.MEMBER, CacheName.INFO}, key = "#email")
-    public MemberUpdateResponse withdrawal(MemberWithdrawal memberWithdrawal, String email) {
-        Member member = getMemberBySecurity();
-        String checkPassword = memberWithdrawal.checkPassword();
-        if (!member.matchPassword(passwordEncoder, checkPassword)) {
-            throw new SodevApplicationException(ErrorCode.INVALID_PASSWORD);
-        }
-
-        memberRepository.delete(member);
-
-        return new MemberUpdateResponse("회원 탈퇴가 완료됐습니다.");
-    }
-
     private Member getMemberBySecurity() {
-        return memberRepository.findByEmail(SecurityUtil.getMemberEmail()).orElseThrow(() ->
+        return memberRepository.findByEmail(getMemberEmail()).orElseThrow(() ->
                 new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
     }
 

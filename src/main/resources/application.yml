@@ -33,9 +33,8 @@ spring:
       timeout: 6 #  Redis 클라이언트가 Redis 서버에 연결하기 위해 대기하는 시간
 
 jwt:
-  secret: fjdklsajfidsa213312hjk123hj231ljkl123hjlfdhkalfs9132hjk231hjk123hjk213hjk1234hj12hjk4124
-  refresh-token-validity-in-seconds: 129600 # 3일
-  access-token-validity-in-seconds: 43200 # 12시간
+  secret: validSecretKeyvalidSecretKeyvalidSecretKeyvalidSecretKeyvalidSecretKeyvalidSecretKey
+  refresh-secret: refreshSecretKeyrefreshSecretKeyrefreshSecretKeyrefreshSecretKeyrefreshSecretKey
 
 logging.level:
   org.hibernate.SQL: debug
