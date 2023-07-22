@@ -1,12 +1,14 @@
 package dev.sodev.domain.project;
 
 import dev.sodev.domain.BaseEntity;
+import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 @Getter
@@ -30,6 +32,9 @@ public class Project extends BaseEntity {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private LocalDateTime recruitDate;
+
+    @OneToMany(mappedBy = "project")
+    private List<Comment> comments;
 
     public static Project of(ProjectInfoRequest request){
         return Project.builder()

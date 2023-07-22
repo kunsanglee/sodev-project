@@ -6,7 +6,7 @@ import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.member.repository.MemberProjectRepository;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.project.Project;
-import dev.sodev.domain.project.dto.projectDTO;
+import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import dev.sodev.domain.project.repository.ProjectRepository;
@@ -46,7 +46,7 @@ public class ProjectServiceImpl implements ProjectService{
 
     @Override
     public ProjectResponse selectProject(Long projectId) {
-        List<projectDTO> project = projectSkillRepository.findProject(projectId);
+        List<ProjectDto> project = projectSkillRepository.findProject(projectId);
         return ProjectResponse.of(project);
     }
 
@@ -121,7 +121,7 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public Page<projectDTO> searchProject(SearchType searchType,String keyword,List<String> skillSet, Pageable pageable) {
+    public Page<ProjectDto> searchProject(SearchType searchType, String keyword, List<String> skillSet, Pageable pageable) {
         // 키워드가 없을 경우 그냥 상태가 RECRUIT 인 프로젝트 최신작성순으로 반환
         if (keyword.isBlank() && skillSet.isEmpty()) {
             return projectSkillRepository.searchAll(pageable);

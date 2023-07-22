@@ -14,8 +14,8 @@ import static dev.sodev.domain.project.QProject.project;
 @Repository
 @RequiredArgsConstructor
 public class ProjectCustomRepositoryImpl implements ProjectCustomRepository {
-    private final JPAQueryFactory queryFactory;
 
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Optional<Project> findProject(String nickName, String content) {

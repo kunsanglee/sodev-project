@@ -2,8 +2,11 @@ package dev.sodev.domain.member;
 
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.Images.Images;
+import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.Auth;
-import dev.sodev.domain.member.dto.request.MemberJoinRequest;
+import dev.sodev.domain.follow.Follow;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -11,6 +14,8 @@ import org.hibernate.annotations.Where;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
@@ -39,28 +44,29 @@ public class Member extends BaseEntity {
     private String introduce;
 
     @Builder.Default
-    private Long follower = 0L;
+//    @OneToMany(mappedBy = "toMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "toMember")
+    private List<Follow> followers = new ArrayList<>();
+
     @Builder.Default
-    private Long following = 0L;
+//    @OneToMany(mappedBy = "fromMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "fromMember")
+    private List<Follow> following = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_project_id")
     private MemberProject memberProject;
 
+    @Builder.Default
+//    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "member")
+    private List<Comment> comments = new ArrayList<>();
+
     @Embedded
     private Images images;
 
-
     private LocalDateTime removedAt;
 
-    public static Member registerMember(MemberJoinRequest request) {
-        Member member = new Member();
-
-        member.email = request.email();
-        member.password = request.password();
-
-        return member;
-    }
 
     // 비밀번호 변경, 회원 탈퇴 시, 비밀번호를 확인하여 일치하는지 확인
     public boolean matchPassword(PasswordEncoder passwordEncoder, String checkPassword) {
@@ -85,29 +91,6 @@ public class Member extends BaseEntity {
 
     public void updateImage(Images memberImage) {
         this.images = memberImage;
-    }
-
-    public void addFollower() {
-        this.follower += 1L;
-    }
-
-    public void subFollower() {
-        this.follower -= 1L;
-    }
-
-    public void addFollowing() {
-        this.following += 1L;
-    }
-
-    public void subFollowing() {
-        this.following -= 1L;
-    }
-
-
-
-    //== 패스워드 암호화 ==//
-    public void encodePassword(PasswordEncoder passwordEncoder){
-        this.password = passwordEncoder.encode(password);
     }
 
 }

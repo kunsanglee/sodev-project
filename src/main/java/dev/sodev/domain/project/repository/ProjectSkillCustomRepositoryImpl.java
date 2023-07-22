@@ -6,8 +6,8 @@ import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.enums.ProjectState;
-import dev.sodev.domain.project.dto.projectDTO;
-import dev.sodev.domain.project.dto.skillDTO;
+import dev.sodev.domain.project.dto.ProjectDto;
+import dev.sodev.domain.project.dto.SkillDto;
 import dev.sodev.domain.skill.Skill;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -41,14 +41,14 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Override
-    public List<projectDTO> findProject(Long projectId) {
+    public List<ProjectDto> findProject(Long projectId) {
         return queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
                 .leftJoin(projectSkill.skill,skill)
                 .where(project.id.eq(projectId))
                 .transform(
                         groupBy(project.id).list(
-                            Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+                            Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                     project.fe, project.be,
                                     project.title, project.content,
                                     project.startDate, project.endDate, project.recruitDate,
@@ -72,8 +72,8 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Override
-    public Page<projectDTO> searchAll(Pageable pageable) {
-        List<projectDTO> content = queryFactory.selectFrom(projectSkill)
+    public Page<ProjectDto> searchAll(Pageable pageable) {
+        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
                 .leftJoin(projectSkill.skill, skill)
                 .where(project.state.eq(ProjectState.RECRUIT))
@@ -82,7 +82,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .limit(pageable.getPageSize())
                 .transform(
                         groupBy(project.id).list(
-                                Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                         project.id,
                                         project.fe, project.be,
                                         project.title, project.content,
@@ -100,8 +100,8 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Override
-    public Page<projectDTO> searchFromEmail(String keyword,List<String> SkillSet, Pageable pageable) {
-        List<projectDTO> content = queryFactory.selectFrom(projectSkill)
+    public Page<ProjectDto> searchFromEmail(String keyword, List<String> SkillSet, Pageable pageable) {
+        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
                 .leftJoin(projectSkill.skill, skill)
                 .where(project.createdBy.eq(keyword).and(skillCheck(SkillSet)).and(project.state.eq(ProjectState.RECRUIT)))
@@ -110,7 +110,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .limit(pageable.getPageSize())
                 .transform(
                         groupBy(project.id).list(
-                                Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                         project.id,
                                         project.fe, project.be,
                                         project.title, project.content,
@@ -128,8 +128,8 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Override
-    public Page<projectDTO> searchFromTitle(String keyword,List<String> SkillSet, Pageable pageable) {
-        List<projectDTO> content = queryFactory.selectFrom(projectSkill)
+    public Page<ProjectDto> searchFromTitle(String keyword, List<String> SkillSet, Pageable pageable) {
+        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
                 .leftJoin(projectSkill.skill, skill)
                 .where(project.title.contains(keyword).and(skillCheck(SkillSet)).and(project.state.eq(ProjectState.RECRUIT)))
@@ -138,7 +138,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .limit(pageable.getPageSize())
                 .transform(
                         groupBy(project.id).list(
-                                Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                         project.id,
                                         project.fe, project.be,
                                         project.title, project.content,
@@ -156,8 +156,8 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Override
-    public Page<projectDTO> searchFromContent(String keyword,List<String> SkillSet, Pageable pageable) {
-        List<projectDTO> content = queryFactory.selectFrom(projectSkill)
+    public Page<ProjectDto> searchFromContent(String keyword, List<String> SkillSet, Pageable pageable) {
+        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
                 .leftJoin(projectSkill.skill, skill)
                 .where(project.content.contains(keyword).and(skillCheck(SkillSet)).and(project.state.eq(ProjectState.RECRUIT)))
@@ -166,7 +166,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .limit(pageable.getPageSize())
                 .transform(
                         groupBy(project.id).list(
-                                Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                         project.id,
                                         project.fe, project.be,
                                         project.title, project.content,
@@ -184,8 +184,8 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
 //    @Override
-//    public Page<projectDTO> searchFromNickname(String keyword, Pageable pageable) {
-//        List<projectDTO> content = queryFactory.selectFrom(projectSkill)
+//    public Page<ProjectDto> searchFromNickname(String keyword, Pageable pageable) {
+//        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
 //                .leftJoin(projectSkill.project, project)
 //                .leftJoin(projectSkill.skill, skill)
 //                .where(project.createdBy.eq(keyword).and(project.state.eq(ProjectState.RECRUIT)))
@@ -194,7 +194,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
 //                .limit(pageable.getPageSize())
 //                .transform(
 //                        groupBy(project.id).list(
-//                                Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+//                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
 //                                        project.id,
 //                                        project.fe, project.be,
 //                                        project.title, project.content,
@@ -212,8 +212,8 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
 //    }
 
     @Override
-    public Page<projectDTO> searchFromSkill(List<String> skillset, Pageable pageable) {
-        List<projectDTO> content = queryFactory.selectFrom(projectSkill)
+    public Page<ProjectDto> searchFromSkill(List<String> skillset, Pageable pageable) {
+        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
                 .leftJoin(projectSkill.skill, skill)
                 .where(skill.name.in(skillset).and(project.state.eq(ProjectState.RECRUIT)))
@@ -222,7 +222,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .limit(pageable.getPageSize())
                 .transform(
                         groupBy(project.id).list(
-                                Projections.fields(projectDTO.class, list(Projections.fields(skillDTO.class, skill.name)).as("skills"),
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                         project.id,
                                         project.fe, project.be,
                                         project.title, project.content,

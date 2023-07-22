@@ -13,6 +13,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByNickName(String nickName);
 
-
     Member getReferenceByEmail(String userId);
 }

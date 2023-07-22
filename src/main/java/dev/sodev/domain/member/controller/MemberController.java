@@ -8,7 +8,6 @@ import dev.sodev.global.Response;
 import dev.sodev.domain.member.dto.MemberInfo;
 import dev.sodev.domain.member.dto.UpdatePassword;
 import dev.sodev.domain.member.service.MemberService;
-import dev.sodev.global.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +25,9 @@ public class MemberController {
         return Response.success(response);
     }
 
-    @GetMapping("/members/{id}")
-    public Response<MemberInfo> memberInfo(@PathVariable Long id) {
-        MemberInfo memberInfo = memberService.getMemberInfo(id);
+    @GetMapping("/members/{memberId}")
+    public Response<MemberInfo> memberInfo(@PathVariable Long memberId) {
+        MemberInfo memberInfo = memberService.getMemberInfo(memberId);
         return Response.success(memberInfo);
     }
 

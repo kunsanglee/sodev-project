@@ -5,7 +5,6 @@ import dev.sodev.global.security.exception.JwtInvalidException;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.Date;

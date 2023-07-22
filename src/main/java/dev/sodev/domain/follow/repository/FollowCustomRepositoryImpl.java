@@ -15,10 +15,10 @@ public class FollowCustomRepositoryImpl implements FollowCustomRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public void findFollowAndDelete(Member fromMember, Member toMember) {
+    public void findFollowAndDelete(Member member) {
         queryFactory
                 .delete(follow)
-                .where(follow.fromMember.eq(fromMember).and(follow.toMember.eq(toMember)))
+                .where(follow.fromMember.eq(member).or(follow.toMember.eq(member)))
                 .execute();
     }
 }
