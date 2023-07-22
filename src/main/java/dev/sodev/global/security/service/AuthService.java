@@ -1,6 +1,9 @@
 package dev.sodev.global.security.service;
 
+import dev.sodev.domain.comment.Comment;
+import dev.sodev.domain.comment.repsitory.CommentRepository;
 import dev.sodev.domain.enums.Auth;
+import dev.sodev.domain.follow.repository.FollowCustomRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.dto.MemberWithdrawal;
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
@@ -20,9 +23,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.List;
 
 
 @Slf4j
@@ -38,6 +43,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JsonWebTokenIssuer jwtIssuer;
     private final RedisService redisService;
+    private final CommentRepository commentRepository;
+    private final FollowCustomRepository followCustomRepository;
 
 
     private String resolveToken(String accessToken) {
@@ -137,6 +144,7 @@ public class AuthService {
     }
 
     // 회원탈퇴
+    @Transactional
     public void withdrawal(MemberWithdrawal memberWithdrawal, String accessToken, String refreshToken) {
         log.info("회원탈퇴 메서드 시작");
 
@@ -149,6 +157,11 @@ public class AuthService {
         }
 
         String resolvedAccessToken = resolveToken(accessToken);
+        Claims claims = jwtIssuer.parseClaimsFromRefreshToken(refreshToken);
+        if (claims == null) {
+            throw new JwtInvalidException("not exists claims in token");
+        }
+
         if (resolvedAccessToken == null) {
             log.info("유효하지 않은 토큰 -> 재로그인 요청");
             throw new SodevApplicationException(ErrorCode.INVALID_TOKEN);
@@ -158,6 +171,14 @@ public class AuthService {
         redisService.delete(CACHE_NAME_PREFIX + member.getEmail()); // 회원 로그인 캐시 삭제
         redisService.set(resolvedAccessToken, "withdrawal", TWO_WEEKS);
         redisService.set(refreshToken, "withdrawal", TWO_WEEKS);
+
+        log.info("탈퇴하는 회원의 모든 연관 댓글 삭제");
+        commentRepository.findAllByMemberEmail(memberEmail).stream().forEach(comment -> comment.remove()); // 회원이 작성한 댓글 isRemoved true로 변경
+        log.info("탈퇴하는 회원의 모든 연관 팔로우 삭제");
+        followCustomRepository.findFollowAndDelete(member); // 탈퇴 회원이 포함된 팔로우 다 삭제.
+        // TODO: project 도 회원 탈퇴시 삭제하는 코드 추가해야됨
+
+        memberRepository.delete(member);
         log.info("회원 탈퇴 완료={}", member.getEmail());
     }
 }

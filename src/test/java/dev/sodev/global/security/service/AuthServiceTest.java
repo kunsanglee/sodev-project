@@ -1,6 +1,8 @@
 package dev.sodev.global.security.service;
 
+import dev.sodev.domain.comment.repsitory.CommentRepository;
 import dev.sodev.domain.enums.Auth;
+import dev.sodev.domain.follow.repository.FollowCustomRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
 import dev.sodev.domain.member.repository.MemberRepository;
@@ -36,6 +38,8 @@ public class AuthServiceTest {
     JsonWebTokenIssuer mockJwtIssuer;
     RedisService redisService;
     AuthService authService;
+    CommentRepository commentRepository;
+    FollowCustomRepository followCustomRepository;
 
     @BeforeEach
     public void setup() {
@@ -43,7 +47,7 @@ public class AuthServiceTest {
         passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         mockJwtIssuer = Mockito.mock(JsonWebTokenIssuer.class);
         redisService = Mockito.mock(RedisService.class);
-        authService = new AuthService(mockAuthRepository, passwordEncoder, mockJwtIssuer, redisService);
+        authService = new AuthService(mockAuthRepository, passwordEncoder, mockJwtIssuer, redisService, commentRepository, followCustomRepository);
     }
 
     MemberLoginRequest getMemberLoginRequest(String memberEmail, String password) {
