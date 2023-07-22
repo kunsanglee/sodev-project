@@ -1,7 +1,7 @@
 package dev.sodev.domain.project.service;
 
 import dev.sodev.domain.enums.SearchType;
-import dev.sodev.domain.project.dto.projectDTO;
+import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import dev.sodev.domain.skill.Skill;
@@ -32,7 +32,7 @@ public interface ProjectService {
 
     List<Skill> findAndSaveSkill(List<String> skills);
 
-    Page<projectDTO> searchProject(SearchType searchType, String keyword,List<String> skillSet, Pageable pageable);
+    Page<ProjectDto> searchProject(SearchType searchType, String keyword, List<String> skillSet, Pageable pageable);
 
 
 }

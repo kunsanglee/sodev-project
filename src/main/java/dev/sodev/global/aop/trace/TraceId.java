@@ -1,6 +1,7 @@
 package dev.sodev.global.aop.trace;
 
-import dev.sodev.global.util.SecurityUtil;
+import dev.sodev.global.security.utils.SecurityUtil;
+
 import java.util.UUID;
 
 public class TraceId {
