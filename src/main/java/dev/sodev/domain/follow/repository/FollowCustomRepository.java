@@ -4,5 +4,5 @@ import dev.sodev.domain.member.Member;
 
 public interface FollowCustomRepository {
 
-    void findFollowAndDelete(Member fromMember, Member toMember);
+    void findFollowAndDelete(Member member);
 }

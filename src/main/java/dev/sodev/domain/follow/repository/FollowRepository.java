@@ -14,4 +14,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     void deleteByFromMemberAndToMember(Member fromMember, Member toMember);
 
+    Follow findByFromMemberAndToMember(Member fromMember, Member toMember);
+
 }
