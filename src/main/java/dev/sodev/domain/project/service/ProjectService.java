@@ -4,7 +4,6 @@ import dev.sodev.domain.enums.SearchType;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
-import dev.sodev.domain.skill.Skill;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,9 +29,16 @@ public interface ProjectService {
 
     ProjectResponse deleteProject(Long projectId);
 
-    List<Skill> findAndSaveSkill(List<String> skills);
+    List<Integer> findAndSaveSkill(List<String> skills);
 
     Page<ProjectDto> searchProject(SearchType searchType, String keyword, List<String> skillSet, Pageable pageable);
 
 
+    Page<ProjectDto> likeProject(String userName, Pageable pageable);
+
+    Page<ProjectDto> offerProject(String userName);
+
+    Page<ProjectDto> applyProject(String userName, Pageable pageable);
+
+    Page<ProjectDto> projectHistory(String userName, Pageable pageable);
 }

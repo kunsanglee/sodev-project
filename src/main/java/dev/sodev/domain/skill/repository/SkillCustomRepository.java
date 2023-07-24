@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SkillCustomRepository {
-    Optional<Skill> findAndUpdate(String skillName);
-    void usagePlus(List<Skill> skills);
+
+//    void usagePlus(List<Skill> skills);
+    void bulkUsageUpdate(List<Integer> skills);
 }
