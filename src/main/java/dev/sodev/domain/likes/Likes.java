@@ -25,4 +25,7 @@ public class Likes extends BaseEntity {
     @JoinColumn(name = "project_id")
     private Project project;
 
+    public static Likes of(Member member, Project project) {
+        return new Likes(null, member, project);
+    }
 }
