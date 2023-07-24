@@ -19,6 +19,7 @@ public enum ErrorCode {
 
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "유효하지 않는 비밀번호 입니다."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 후에 이용하실 수 있습니다."),
+    INVALID_PERMISSION(HttpStatus.UNAUTHORIZED, "수정,삭제는 본인이 작성한 글만 가능합니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     ACCESS_FORBIDDEN(HttpStatus.FORBIDDEN, "관리자만 접근할 수 있습니다."),
     ACCESS_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "다시 로그인 한 후에 요청해주세요."),
