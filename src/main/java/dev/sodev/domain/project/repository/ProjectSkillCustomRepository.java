@@ -1,15 +1,15 @@
 package dev.sodev.domain.project.repository;
 
 import dev.sodev.domain.project.dto.ProjectDto;
-import dev.sodev.domain.skill.Skill;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ProjectSkillCustomRepository {
+
     List<ProjectDto> findProject(Long projectId);
-    void saveAll(List<Skill> skills, Long projectId);
+    void saveAll(List<Integer> skills, Long projectId);
 
     Page<ProjectDto> searchAll(Pageable pageable);
 
@@ -19,7 +19,7 @@ public interface ProjectSkillCustomRepository {
 
     Page<ProjectDto> searchFromContent(String keyword, List<String> SkillSet, Pageable pageable);
 
-//    Page<ProjectDto> searchFromNickname(String keyword, Pageable pageable);
+    Page<ProjectDto> searchFromNickname(String keyword,List<String> SkillSet, Pageable pageable);
 
     Page<ProjectDto> searchFromSkill(List<String> skillSet, Pageable pageable);
 

@@ -8,7 +8,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.SkillDto;
-import dev.sodev.domain.skill.Skill;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -49,6 +48,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .transform(
                         groupBy(project.id).list(
                             Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
+                                    project.id, project.registeredBy,
                                     project.fe, project.be,
                                     project.title, project.content,
                                     project.startDate, project.endDate, project.recruitDate,
@@ -58,16 +58,16 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Transactional
-    public void saveAll(List<Skill> skills, Long projectId) {
+    public void saveAll(List<Integer> skills, Long projectId) {
         String sql = "INSERT INTO project_skill (project_id, skill_id) " +
                 "VALUES (?, ?)";
 
         jdbcTemplate.batchUpdate(sql,
                 skills,
                 skills.size(),
-                (PreparedStatement ps, Skill skill) -> {
+                (PreparedStatement ps, Integer skill) -> {
                     ps.setLong(1, projectId);
-                    ps.setLong(2, skill.getId());
+                    ps.setLong(2, skill);
                 });
     }
 
@@ -83,7 +83,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .transform(
                         groupBy(project.id).list(
                                 Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-                                        project.id,
+                                        project.id,project.registeredBy,
                                         project.fe, project.be,
                                         project.title, project.content,
                                         project.startDate, project.endDate, project.recruitDate,
@@ -110,8 +110,9 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .limit(pageable.getPageSize())
                 .transform(
                         groupBy(project.id).list(
+
                                 Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-                                        project.id,
+                                        project.id,project.registeredBy,
                                         project.fe, project.be,
                                         project.title, project.content,
                                         project.startDate, project.endDate, project.recruitDate,
@@ -139,7 +140,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .transform(
                         groupBy(project.id).list(
                                 Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-                                        project.id,
+                                        project.id,project.registeredBy,
                                         project.fe, project.be,
                                         project.title, project.content,
                                         project.startDate, project.endDate, project.recruitDate,
@@ -167,7 +168,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .transform(
                         groupBy(project.id).list(
                                 Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-                                        project.id,
+                                        project.id,project.registeredBy,
                                         project.fe, project.be,
                                         project.title, project.content,
                                         project.startDate, project.endDate, project.recruitDate,
@@ -182,34 +183,33 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
+    @Override
+    public Page<ProjectDto> searchFromNickname(String keyword,List<String> SkillSet, Pageable pageable) {
+        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
+                .leftJoin(projectSkill.project, project)
+                .leftJoin(projectSkill.skill, skill)
+                .where(project.registeredBy.eq(keyword).and(skillCheck(SkillSet)).and(project.state.eq(ProjectState.RECRUIT)))
+                .orderBy(project.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .transform(
+                        groupBy(project.id).list(
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
+                                        project.id,project.registeredBy,
+                                        project.fe, project.be,
+                                        project.title, project.content,
+                                        project.startDate, project.endDate, project.recruitDate,
+                                        project.createdAt, project.createdBy,
+                                        project.modifiedAt, project.modifiedBy)))
+                ;
 
-//    @Override
-//    public Page<ProjectDto> searchFromNickname(String keyword, Pageable pageable) {
-//        List<ProjectDto> content = queryFactory.selectFrom(projectSkill)
-//                .leftJoin(projectSkill.project, project)
-//                .leftJoin(projectSkill.skill, skill)
-//                .where(project.createdBy.eq(keyword).and(project.state.eq(ProjectState.RECRUIT)))
-//                .orderBy(project.createdAt.desc())
-//                .offset(pageable.getOffset())
-//                .limit(pageable.getPageSize())
-//                .transform(
-//                        groupBy(project.id).list(
-//                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-//                                        project.id,
-//                                        project.fe, project.be,
-//                                        project.title, project.content,
-//                                        project.startDate, project.endDate, project.recruitDate,
-//                                        project.createdAt, project.createdBy,
-//                                        project.modifiedAt, project.modifiedBy)))
-//                ;
-//
-//        JPAQuery<Long> countQuery = queryFactory
-//                .select(project.count())
-//                .from(project)
-//                .where(project.createdBy.eq(keyword).and(project.state.eq(ProjectState.RECRUIT)));
-//
-//        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
-//    }
+        JPAQuery<Long> countQuery = queryFactory
+                .select(project.count())
+                .from(project)
+                .where(project.createdBy.eq(keyword).and(project.state.eq(ProjectState.RECRUIT)));
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
 
     @Override
     public Page<ProjectDto> searchFromSkill(List<String> skillset, Pageable pageable) {
@@ -223,7 +223,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                 .transform(
                         groupBy(project.id).list(
                                 Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-                                        project.id,
+                                        project.id,project.registeredBy,
                                         project.fe, project.be,
                                         project.title, project.content,
                                         project.startDate, project.endDate, project.recruitDate,

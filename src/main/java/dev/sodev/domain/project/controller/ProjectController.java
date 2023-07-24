@@ -1,6 +1,11 @@
 package dev.sodev.domain.project.controller;
 
 import dev.sodev.domain.enums.SearchType;
+
+import dev.sodev.domain.likes.dto.response.LikeResponse;
+import dev.sodev.domain.likes.service.LikeService;
+
+
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
@@ -20,6 +25,8 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+
+    private final LikeService likeService;
 
     @GetMapping("/{projectId}")
     public Response<ProjectResponse> selectProject(@PathVariable Long projectId) {
@@ -51,5 +58,26 @@ public class ProjectController {
                                       @RequestParam(required = false) List<String> skillSet,
                                       Pageable pageable) {
         return projectService.searchProject(SearchType.valueOf(searchType), keyword, skillSet, pageable);
+    }
+    @PostMapping("/{projectId}/likes")
+    public Response<LikeResponse> like(@PathVariable Long projectId) {
+        LikeResponse response = likeService.like(projectId);
+        return Response.success(response);
+    }
+    @GetMapping("/{memberName}/likes")
+    public Page<ProjectDto> likeProjectList(@PathVariable String memberName, Pageable pageable){
+        return projectService.likeProject(memberName, pageable);
+    }
+    @GetMapping("/{memberName}/offers")
+    public Page<ProjectDto> offerProject(@PathVariable String memberName){
+        return projectService.offerProject(memberName);
+    }
+    @GetMapping("/{memberName}/applies")
+    public Page<ProjectDto> applyProject(@PathVariable String memberName, Pageable pageable){
+        return projectService.applyProject(memberName, pageable);
+    }
+    @GetMapping("/{memberName}/history")
+    public Page<ProjectDto> projectHistory(@PathVariable String memberName, Pageable pageable){
+        return projectService.projectHistory(memberName, pageable);
     }
 }
