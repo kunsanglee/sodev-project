@@ -5,10 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProjectSkillCustomRepository {
 
-    List<ProjectDto> findProject(Long projectId);
+    Optional<ProjectDto> findProject(Long projectId);
     void saveAll(List<Integer> skills, Long projectId);
 
     Page<ProjectDto> searchAll(Pageable pageable);

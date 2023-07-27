@@ -3,18 +3,20 @@ package dev.sodev.domain.project;
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.ProjectState;
+import dev.sodev.domain.likes.Likes;
 import dev.sodev.domain.member.Member;
+import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
 @Getter
-@Setter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -37,62 +39,36 @@ public class Project extends BaseEntity {
     private LocalDateTime endDate;
     private LocalDateTime recruitDate;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<MemberProject> members = new ArrayList<>();
 
-    @OneToMany(mappedBy = "project")
-    private List<Comment> comments;
+    @Builder.Default
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<MemberProject> applicants = new ArrayList<>(); // 지원자 리스트
+
+    @Builder.Default
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ProjectSkill> skills = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Likes> likes = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
 
-    public static Project of(ProjectInfoRequest request, Member member){
-        return Project.builder()
-                .fe(request.fe())
-                .be(request.be())
-                .title(request.title())
-                .content(request.content())
-                .state(ProjectState.RECRUIT)
-                .registeredBy(member.getNickName())
-                .recruitDate(request.recruit_date())
-                .startDate(request.start_date())
-                .endDate(request.end_date())
-                .build();
+
+    public void update(ProjectInfoRequest request) {
+        this.title = request.title();
+        this.content = request.content();
+        this.be = request.be();
+        this.fe = request.fe();
+        this.startDate = request.start_date();
+        this.endDate = request.end_date();
+        this.recruitDate = request.recruit_date();
     }
 
-    public void changeTitle(String newTitle) {
-        nullAndEmptyCheck(newTitle);
-        this.title = newTitle;
-    }
-    public void changeContent(String newContent) {
-        nullAndEmptyCheck(newContent);
-        this.content= newContent;
-    }
-//    public void changeFe(String newContent) {
-//        nullAndEmptyCheck(newContent);
-//        this.content= newContent;
-//    }
-//    public void changeBe(String newContent) {
-//        nullAndEmptyCheck(newContent);
-//        this.content= newContent;
-//    }
-//    public void changeRecruitDate(String newContent) {
-//        nullAndEmptyCheck(newContent);
-//        this.content= newContent;
-//    }
-//    public void changeStartDate(String newContent) {
-//        nullAndEmptyCheck(newContent);
-//        this.content= newContent;
-//    }
-//    public void changeEndDate(String newContent) {
-//        nullAndEmptyCheck(newContent);
-//        this.content= newContent;
-//    }
-//    private void nullAndEmptyCheck(String someString) {
-//        if(someString.isBlank()) {
-//            throw new IllegalArgumentException("공백은 입력 불가합니다.");
-//        }
-//    }
-
-    private void nullAndEmptyCheck(String someString) {
-        if(someString.isBlank()) {
-            throw new IllegalArgumentException("공백은 입력 불가합니다.");
-        }
-    }
 }

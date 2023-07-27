@@ -3,6 +3,7 @@ package dev.sodev.domain.project.service;
 import dev.sodev.domain.enums.SearchType;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
+import dev.sodev.domain.project.dto.response.ProjectListResponse;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ public interface ProjectService {
      * 프로젝트 삭제
      */
 
-    List<ProjectResponse> projectList();
+    ProjectListResponse projectList();
 
     ProjectResponse selectProject(Long projectId);
 
@@ -33,12 +34,13 @@ public interface ProjectService {
 
     Page<ProjectDto> searchProject(SearchType searchType, String keyword, List<String> skillSet, Pageable pageable);
 
-
     Page<ProjectDto> likeProject(String userName, Pageable pageable);
 
-    Page<ProjectDto> offerProject(String userName);
+//    Page<ProjectDto> offerProject(String userName);
 
     Page<ProjectDto> applyProject(String userName, Pageable pageable);
+
+    void applyProject(Long projectId); // 프로젝트 참여 지원하기
 
     Page<ProjectDto> projectHistory(String userName, Pageable pageable);
 }

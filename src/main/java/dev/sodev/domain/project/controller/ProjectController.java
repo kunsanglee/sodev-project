@@ -25,7 +25,6 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
-
     private final LikeService likeService;
 
     @GetMapping("/{projectId}")
@@ -52,6 +51,12 @@ public class ProjectController {
         return Response.success(project);
     }
 
+    @PostMapping("/{projectId}/applies")
+    public Response<ProjectResponse> applyProject(@PathVariable Long projectId) {
+        projectService.applyProject(projectId);
+        return Response.success();
+    }
+
     @GetMapping("/search")
     public Page<ProjectDto> searchAll(@RequestParam(required = false) String searchType,
                                       @RequestParam(required = false) String keyword,
@@ -64,20 +69,26 @@ public class ProjectController {
         LikeResponse response = likeService.like(projectId);
         return Response.success(response);
     }
+
     @GetMapping("/{memberName}/likes")
     public Page<ProjectDto> likeProjectList(@PathVariable String memberName, Pageable pageable){
         return projectService.likeProject(memberName, pageable);
     }
-    @GetMapping("/{memberName}/offers")
-    public Page<ProjectDto> offerProject(@PathVariable String memberName){
-        return projectService.offerProject(memberName);
-    }
+
+    // 제안하기, 제안받은 프로젝트 빼기로함
+//    @GetMapping("/{memberName}/offers")
+//    public Page<ProjectDto> offerProject(@PathVariable String memberName){
+//        return projectService.offerProject(memberName);
+//    }
+
     @GetMapping("/{memberName}/applies")
     public Page<ProjectDto> applyProject(@PathVariable String memberName, Pageable pageable){
         return projectService.applyProject(memberName, pageable);
     }
+
     @GetMapping("/{memberName}/history")
     public Page<ProjectDto> projectHistory(@PathVariable String memberName, Pageable pageable){
         return projectService.projectHistory(memberName, pageable);
     }
+
 }
