@@ -208,7 +208,7 @@ class CommentServiceTest {
         when(memberRepository.findByEmail(email)).thenReturn(Optional.of(member));
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
-        when(customCommentRepository.findAllByProject(project)).thenReturn(project.getComments());
+        when(customCommentRepository.findAllByProject(project.getId())).thenReturn(project.getComments());
 
         // when
         CommentResponse response = commentService.deleteComment(project.getId(), request);
@@ -272,7 +272,7 @@ class CommentServiceTest {
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment1));
         when(commentRepository.findById(2L)).thenReturn(Optional.of(comment2));
-        when(customCommentRepository.findAllByProject(project)).thenReturn(project.getComments());
+        when(customCommentRepository.findAllByProject(project.getId())).thenReturn(project.getComments());
 
 
         // when && then

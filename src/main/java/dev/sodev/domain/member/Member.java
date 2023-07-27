@@ -69,7 +69,7 @@ public class Member extends BaseEntity {
     @Embedded
     private Images images;
 
-    private LocalDateTime removedAt;
+//    private LocalDateTime removedAt;
 
 
     // 비밀번호 변경, 회원 탈퇴 시, 비밀번호를 확인하여 일치하는지 확인
