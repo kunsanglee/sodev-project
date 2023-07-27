@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface CommentCustomRepository {
 
-    List<Comment> findAllByProject(Project project);
+    List<Comment> findAllByProject(Long projectId);
 }

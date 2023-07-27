@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface LikeRepository extends JpaRepository<Likes, Long>, LikeCustomRepository {
+public interface LikeRepository extends JpaRepository<Likes, Long> {
 
     Long countLikesByProjectId(Long projectId);
 

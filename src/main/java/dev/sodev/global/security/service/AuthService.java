@@ -8,6 +8,9 @@ import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.dto.MemberWithdrawal;
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
 import dev.sodev.domain.member.repository.MemberRepository;
+import dev.sodev.domain.project.Project;
+import dev.sodev.domain.project.repository.ProjectRepository;
+import dev.sodev.domain.project.repository.ProjectSkillRepository;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.global.redis.CacheName;
@@ -45,6 +48,8 @@ public class AuthService {
     private final RedisService redisService;
     private final CommentRepository commentRepository;
     private final FollowCustomRepository followCustomRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectSkillRepository projectSkillRepository;
 
 
     private String resolveToken(String accessToken) {
@@ -173,12 +178,10 @@ public class AuthService {
         redisService.set(refreshToken, "withdrawal", TWO_WEEKS);
 
         log.info("탈퇴하는 회원의 모든 연관 댓글 삭제");
-        commentRepository.findAllByMemberEmail(memberEmail).stream().forEach(comment -> comment.remove()); // 회원이 작성한 댓글 isRemoved true로 변경
-        log.info("탈퇴하는 회원의 모든 연관 팔로우 삭제");
-        followCustomRepository.findFollowAndDelete(member); // 탈퇴 회원이 포함된 팔로우 다 삭제.
-        // TODO: project 도 회원 탈퇴시 삭제하는 코드 추가해야됨
+        member.removeAllComments(); // 회원이 작성한 모든 댓글 삭제(댓글의 Member 를 null 로 하여 관계를 끊음)
+        projectRepository.deleteProjectByCreatedBy(member.getEmail()); // 이메일로 프로젝트 찾아서 삭제.
 
-        memberRepository.delete(member);
+        memberRepository.delete(member); // 회원 삭제
         log.info("회원 탈퇴 완료={}", member.getEmail());
     }
 }

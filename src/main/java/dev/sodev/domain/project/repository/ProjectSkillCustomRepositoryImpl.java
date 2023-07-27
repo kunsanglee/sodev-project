@@ -8,6 +8,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.SkillDto;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.Optional;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
@@ -40,21 +43,26 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
     }
 
     @Override
-    public List<ProjectDto> findProject(Long projectId) {
-        return queryFactory.selectFrom(projectSkill)
+    public Optional<ProjectDto> findProject(Long projectId) {
+        List<ProjectDto> projectDtoList = queryFactory.selectFrom(projectSkill)
                 .leftJoin(projectSkill.project, project)
-                .leftJoin(projectSkill.skill,skill)
+                .leftJoin(projectSkill.skill, skill)
                 .where(project.id.eq(projectId))
                 .transform(
                         groupBy(project.id).list(
-                            Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
-                                    project.id, project.registeredBy,
-                                    project.fe, project.be,
-                                    project.title, project.content,
-                                    project.startDate, project.endDate, project.recruitDate,
-                                    project.createdAt, project.createdBy,
-                                    project.modifiedAt, project.modifiedBy)))
-                ;
+                                Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
+                                        project.id, project.registeredBy,
+                                        project.fe, project.be,
+                                        project.title, project.content,
+                                        project.startDate, project.endDate, project.recruitDate,
+                                        project.createdAt, project.createdBy,
+                                        project.modifiedAt, project.modifiedBy)));
+
+        if (!projectDtoList.isEmpty()) {
+            return Optional.of(projectDtoList.get(0));
+        } else {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST);
+        }
     }
 
     @Transactional

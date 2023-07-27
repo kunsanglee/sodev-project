@@ -7,13 +7,13 @@ import java.util.List;
 
 public record ProjectResponse(
         String message,
-        List<ProjectDto> project
+        ProjectDto project
 ) {
     public static ProjectResponse of (String message) {
         return new ProjectResponse(message, null);
     }
 
-    public static ProjectResponse of (List<ProjectDto> project) {
+    public static ProjectResponse of (ProjectDto project) {
         return new ProjectResponse(null, project);
     }
 }

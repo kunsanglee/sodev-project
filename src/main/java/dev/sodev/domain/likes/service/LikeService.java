@@ -2,6 +2,7 @@ package dev.sodev.domain.likes.service;
 
 import dev.sodev.domain.likes.Likes;
 import dev.sodev.domain.likes.dto.response.LikeResponse;
+import dev.sodev.domain.likes.repository.LikeCustomRepository;
 import dev.sodev.domain.likes.repository.LikeRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.repository.MemberRepository;
@@ -18,9 +19,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LikeService {
     private final ProjectRepository projectRepository;
-
+    private final LikeCustomRepository likeCustomRepository;
     private final LikeRepository likeRepository;
-
     private final MemberRepository memberRepository;
 
     public LikeResponse like(Long projectId) {
@@ -32,10 +32,10 @@ public class LikeService {
         // like 테이블에 값이 없으면 추가 있으면 삭제
         Member member = memberRepository.getReferenceByEmail(SecurityUtil.getMemberEmail());
         if(project.getCreatedBy().equals(SecurityUtil.getMemberEmail()))
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST);
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인이 작성한 게시물은 좋아요를 누를 수 없습니다.");
 
         LikeResponse likeResponse = new LikeResponse();
-        Likes likes = likeRepository.isProjectLikes(member.getId(), projectId);
+        Likes likes = likeCustomRepository.isProjectLikes(member.getId(), projectId);
         if(likes==null) {
             likeRepository.save(Likes.of(member, project));
             likeResponse.setMessage(String.format("%s 을(를) 관심프로젝트에 저장하였습니다.", project.getTitle()));

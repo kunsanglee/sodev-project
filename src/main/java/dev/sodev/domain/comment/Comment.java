@@ -22,7 +22,7 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_id", updatable = false)
     private long id;
 
-    @JoinColumn(name = "member_id", nullable = false, updatable = false)
+    @JoinColumn(name = "member_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
 
@@ -66,6 +66,10 @@ public class Comment extends BaseEntity {
 
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    public void updateMember(Member member) {
+        this.member = member;
     }
 
     public void remove() {
