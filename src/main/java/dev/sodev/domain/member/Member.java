@@ -5,6 +5,7 @@ import dev.sodev.domain.Images.Images;
 import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.Auth;
 import dev.sodev.domain.follow.Follow;
+import dev.sodev.domain.likes.Likes;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
@@ -21,8 +22,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SQLDelete(sql = "UPDATE \"member\" SET removed_at = NOW() WHERE member_id=?")
-@Where(clause = "removed_at is NULL")
 @Entity
 public class Member extends BaseEntity {
 
@@ -44,23 +43,28 @@ public class Member extends BaseEntity {
     private String introduce;
 
     @Builder.Default
-//    @OneToMany(mappedBy = "toMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @OneToMany(mappedBy = "toMember")
+    @OneToMany(mappedBy = "toMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Follow> followers = new ArrayList<>();
 
     @Builder.Default
-//    @OneToMany(mappedBy = "fromMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @OneToMany(mappedBy = "fromMember")
+    @OneToMany(mappedBy = "fromMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Follow> following = new ArrayList<>();
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_project_id")
-    private MemberProject memberProject;
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Where(clause = "role = 'CREATOR' or role = 'MEMBER'")
+    private List<MemberProject> memberProject;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Where(clause = "role = 'APPLICANT'")
+    private List<MemberProject> applies; // 회원의 지원 프로젝트 리스트
 
     @Builder.Default
-//    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @OneToMany(mappedBy = "member")
     private List<Comment> comments = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Likes> likes = new ArrayList<>();
 
     @Embedded
     private Images images;
@@ -91,6 +95,13 @@ public class Member extends BaseEntity {
 
     public void updateImage(Images memberImage) {
         this.images = memberImage;
+    }
+
+    public void removeAllComments() {
+        for (Comment comment : comments) {
+//            comment.remove(); // 댓글을 논리적으로 삭제
+            comment.updateMember(null); // 회원과 댓글 연관관계 제거
+        }
     }
 
 }
