@@ -17,12 +17,12 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Comment> findAllByProject(Project project) {
+    public List<Comment> findAllByProject(Long projectId) {
         return queryFactory
                 .select(comment)
                 .from(comment)
                 .leftJoin(comment.parent)
-                .where(comment.project.id.eq(project.getId()))
+                .where(comment.project.id.eq(projectId))
                 .orderBy(comment.parent.id.asc().nullsFirst(), comment.createdAt.asc())
                 .fetch();
     }

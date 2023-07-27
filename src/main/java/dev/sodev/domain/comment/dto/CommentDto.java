@@ -16,8 +16,8 @@ public record CommentDto(
     public static CommentDto of(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
-                .memberId(comment.getMember().getId())
-                .nickName(comment.getMember().getRemovedAt() == null ? comment.getMember().getNickName() : "탈퇴한 회원")
+                .memberId(comment.getMember() == null ? null : comment.getMember().getId())
+                .nickName(comment.getMember() == null ? "탈퇴한 회원" : comment.getMember().getNickName())
                 .content(comment.isRemoved() ? "삭제된 댓글입니다." : comment.getContent())
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .build();
