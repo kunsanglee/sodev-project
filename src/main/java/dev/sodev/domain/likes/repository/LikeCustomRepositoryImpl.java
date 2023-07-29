@@ -5,9 +5,15 @@ import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.likes.Likes;
 import dev.sodev.domain.likes.QLikes;
-import dev.sodev.domain.likes.dto.LikesDto;
-import dev.sodev.domain.member.QMember;
+import dev.sodev.domain.likes.dto.LikesMemberDto;
+import dev.sodev.domain.likes.dto.LikesProjectDto;
+import dev.sodev.domain.project.Project;
+import dev.sodev.domain.project.QProject;
+import dev.sodev.domain.project.dto.ProjectDto;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +21,7 @@ import java.util.List;
 
 import static dev.sodev.domain.likes.QLikes.*;
 import static dev.sodev.domain.member.QMember.member;
+import static dev.sodev.domain.project.QProject.*;
 
 
 @Repository
@@ -39,11 +46,33 @@ public class LikeCustomRepositoryImpl implements LikeCustomRepository{
     }
 
     @Override
-    public List<LikesDto> likeList(Long projectId) {
-        return queryFactory.select(Projections.constructor(LikesDto.class, likes.id, member.id, member.nickName))
+    public List<LikesMemberDto> likeList(Long projectId) {
+        return queryFactory.select(Projections.constructor(LikesMemberDto.class, likes.id, member.id, member.nickName))
                 .from(likes)
                 .join(likes.member, member)
                 .where(likes.project.id.eq(projectId))
                 .fetch();
+    }
+
+    @Override
+    public Slice<LikesProjectDto> findLikedProjectsByMemberId(Long memberId, Pageable pageable) {
+
+        List<LikesProjectDto> result = queryFactory
+                .select(Projections.constructor(LikesProjectDto.class, likes.id, project.id, project.title))
+                .from(likes)
+                .where(likes.member.id.eq(memberId))
+                .innerJoin(likes.project, project)
+                .orderBy(project.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize() + 1)
+                .fetch();
+
+        boolean hasNext = false;
+        if (result.size() == pageable.getPageSize() + 1) {
+            hasNext = true;
+            result.remove(result.size() - 1);
+        }
+
+        return new SliceImpl<>(result, pageable, hasNext);
     }
 }
