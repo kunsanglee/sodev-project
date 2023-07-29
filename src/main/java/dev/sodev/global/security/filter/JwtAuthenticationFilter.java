@@ -47,9 +47,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (value.equals("logout")) {
                     log.info("로그아웃한 회원의 토큰 -> 재로그인 요청");
                     throw new SodevApplicationException(ErrorCode.ACCESS_UNAUTHORIZED); // 로그아웃한 토큰 -> 재로그인
-                } else {
-                    log.info("탈퇴한 회원의 토큰 -> 재가입 요청");
-                    throw new SodevApplicationException(ErrorCode.WITHDRAWAL_USER); // 탈퇴한 회원의 토큰 -> 재가입
                 }
             }
 
