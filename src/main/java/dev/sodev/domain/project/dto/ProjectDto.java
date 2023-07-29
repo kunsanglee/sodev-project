@@ -1,8 +1,7 @@
 package dev.sodev.domain.project.dto;
 
 import dev.sodev.domain.comment.dto.CommentDto;
-import dev.sodev.domain.likes.dto.LikesDto;
-import dev.sodev.domain.member.MemberProject;
+import dev.sodev.domain.likes.dto.LikesMemberDto;
 import dev.sodev.domain.member.dto.MemberProjectDto;
 import dev.sodev.domain.project.Project;
 import lombok.AllArgsConstructor;
@@ -32,7 +31,7 @@ public class ProjectDto {
     private List<MemberProjectDto> members = new ArrayList<>();
     private List<MemberProjectDto> applicants = new ArrayList<>();
     private List<CommentDto> comments = new ArrayList<>();
-    private List<LikesDto> likes = new ArrayList<>();
+    private List<LikesMemberDto> likes = new ArrayList<>();
 
     private String registeredBy;
     private String createdBy;
@@ -40,20 +39,20 @@ public class ProjectDto {
     private String modifiedBy;
     private LocalDateTime modifiedAt;
 
-//    public static ProjectDto fromEntity(Project project) {
-//        return ProjectDto.builder()
-//                .id(project.getId())
-//                .be(project.getBe())
-//                .fe(project.getFe())
-//                .startDate(project.getStartDate())
-//                .endDate(project.getEndDate())
-//                .recruitDate(project.getRecruitDate())
-//                .title(project.getTitle())
-//                .content(project.getContent())
-//                .build();
-//    }
+    public static ProjectDto of(Project project) {
+        return ProjectDto.builder()
+                .id(project.getId())
+                .be(project.getBe())
+                .fe(project.getFe())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .recruitDate(project.getRecruitDate())
+                .title(project.getTitle())
+                .content(project.getContent())
+                .build();
+    }
 
-    public void addLikes(List<LikesDto> likes) {
+    public void addLikes(List<LikesMemberDto> likes) {
         this.likes = likes;
     }
 

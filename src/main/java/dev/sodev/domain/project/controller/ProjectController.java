@@ -6,6 +6,7 @@ import dev.sodev.domain.likes.dto.response.LikeResponse;
 import dev.sodev.domain.likes.service.LikeService;
 
 
+import dev.sodev.domain.member.dto.MemberProjectDto;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.PeerReviewRequest;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,6 +60,12 @@ public class ProjectController {
         return Response.success();
     }
 
+    @PostMapping("/{projectId}/likes")
+    public Response<LikeResponse> like(@PathVariable Long projectId) {
+        LikeResponse response = likeService.like(projectId);
+        return Response.success(response);
+    }
+
     @GetMapping("/search")
     public Page<ProjectDto> searchAll(@RequestParam(required = false) String searchType,
                                       @RequestParam(required = false) String keyword,
@@ -65,31 +73,15 @@ public class ProjectController {
                                       Pageable pageable) {
         return projectService.searchProject(SearchType.valueOf(searchType), keyword, skillSet, pageable);
     }
-    @PostMapping("/{projectId}/likes")
-    public Response<LikeResponse> like(@PathVariable Long projectId) {
-        LikeResponse response = likeService.like(projectId);
-        return Response.success(response);
+
+    @PostMapping("/{projectId}/applicants") // 프로젝트 지원자 수락
+    public void acceptApplicant(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
+        projectService.acceptApplicant(projectId, memberProjectDto);
     }
 
-    @GetMapping("/{memberName}/likes")
-    public Page<ProjectDto> likeProjectList(@PathVariable String memberName, Pageable pageable){
-        return projectService.likeProject(memberName, pageable);
-    }
-
-    // 제안하기, 제안받은 프로젝트 빼기로함
-//    @GetMapping("/{memberName}/offers")
-//    public Page<ProjectDto> offerProject(@PathVariable String memberName){
-//        return projectService.offerProject(memberName);
-//    }
-
-    @GetMapping("/{memberName}/applies")
-    public Page<ProjectDto> applyProject(@PathVariable String memberName, Pageable pageable){
-        return projectService.applyProject(memberName, pageable);
-    }
-
-    @GetMapping("/{memberName}/history")
-    public Page<ProjectDto> projectHistory(@PathVariable String memberName, Pageable pageable){
-        return projectService.projectHistory(memberName, pageable);
+    @DeleteMapping("/{projectId}/applicants") // 프로젝트 지원자 거절
+    public void declineApplicant(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
+        projectService.declineApplicant(projectId, memberProjectDto);
     }
 
     @PostMapping("/review/{memberId}")
@@ -97,5 +89,4 @@ public class ProjectController {
         projectService.evaluationMembers(memberId, request);
         return Response.success();
     }
-
 }
