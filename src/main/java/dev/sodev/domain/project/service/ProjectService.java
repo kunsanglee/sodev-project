@@ -2,6 +2,7 @@ package dev.sodev.domain.project.service;
 
 import dev.sodev.domain.enums.SearchType;
 import dev.sodev.domain.project.dto.ProjectDto;
+import dev.sodev.domain.project.dto.requset.PeerReviewRequest;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectListResponse;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
@@ -43,4 +44,6 @@ public interface ProjectService {
     void applyProject(Long projectId); // 프로젝트 참여 지원하기
 
     Page<ProjectDto> projectHistory(String userName, Pageable pageable);
+
+    void evaluationMembers(Long memberId, PeerReviewRequest request);
 }

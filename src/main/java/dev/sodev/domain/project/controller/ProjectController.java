@@ -7,6 +7,7 @@ import dev.sodev.domain.likes.service.LikeService;
 
 
 import dev.sodev.domain.project.dto.ProjectDto;
+import dev.sodev.domain.project.dto.requset.PeerReviewRequest;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import dev.sodev.domain.project.service.ProjectService;
@@ -89,6 +90,12 @@ public class ProjectController {
     @GetMapping("/{memberName}/history")
     public Page<ProjectDto> projectHistory(@PathVariable String memberName, Pageable pageable){
         return projectService.projectHistory(memberName, pageable);
+    }
+
+    @PostMapping("/review/{memberId}")
+    public Response<Void> projectReview(@PathVariable Long memberId,@RequestBody PeerReviewRequest request) {
+        projectService.evaluationMembers(memberId, request);
+        return Response.success();
     }
 
 }
