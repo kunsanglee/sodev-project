@@ -15,11 +15,14 @@ import dev.sodev.domain.member.repository.MemberProjectRepository;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.project.Project;
 import dev.sodev.domain.project.dto.ProjectDto;
+import dev.sodev.domain.project.dto.requset.PeerReviewRequest;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.domain.project.dto.response.ProjectListResponse;
 import dev.sodev.domain.project.dto.response.ProjectResponse;
 import dev.sodev.domain.project.repository.ProjectRepository;
 import dev.sodev.domain.project.repository.ProjectSkillRepository;
+import dev.sodev.domain.review.Review;
+import dev.sodev.domain.review.repository.ReviewRepository;
 import dev.sodev.domain.skill.repository.SkillRepository;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
@@ -47,6 +50,8 @@ public class ProjectServiceImpl implements ProjectService{
     private final MemberRepository memberRepository;
     private final LikeCustomRepository likeCustomRepository;
     private final CommentCustomRepository commentCustomRepository;
+
+    private final ReviewRepository reviewRepository;
 
     @Override
     public ProjectListResponse projectList() {
@@ -201,6 +206,23 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     public Page<ProjectDto> projectHistory(String userName, Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public void evaluationMembers(Long memberId, PeerReviewRequest request) {
+        // 프로젝트 글 작성자가 프로젝트 완료 후 프로젝트 참여자들에게 카프카 알림발송 -> 프로젝트완료 후 평가하기
+        // 1. memberProject 에서 projectId = ? , role = Creator, Member
+        // TODO : 임의로 memberId(평가하는 사람의 ID) 를 controller 에서 들어오는 변수로 지정함, 추후 카프카 알림 설정시 로직 보완필요 (기능만 구현)
+        // TODO : 시큐리티에서 로그인안한 사용자 체크, 권한체크 해주는거 확인해야함
+        // 진행중인 프로젝트가 없을 경우 에러반환
+        MemberProject memberProject = memberProjectRepository.getReferenceByMemberId(memberId);
+        if (memberProject == null) throw new SodevApplicationException(ErrorCode.FEED_NOT_FOUND);
+        if (!memberProject.getProject().getState().equals(ProjectState.COMPLETE))
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST);
+        // 프로젝트 참여한 n명의 인원 중 본인 제외 나머지 사람들 평가해야됨
+//        List<MemberProject> List = memberProjectRepository.findAllByMemberId(memberId);
+        Member reviewMember = memberRepository.getReferenceById(memberId);
+        reviewRepository.save(Review.of(reviewMember, request.ReviewComment()));
     }
 
     private Member checkMember() { // 요청하는 회원이 존재하는지 확인
