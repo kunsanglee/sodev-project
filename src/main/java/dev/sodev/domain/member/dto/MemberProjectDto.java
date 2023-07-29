@@ -1,7 +1,6 @@
 package dev.sodev.domain.member.dto;
 
 import dev.sodev.domain.enums.ProjectRole;
-import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.member.MemberProject;
 import lombok.Builder;
 
@@ -10,7 +9,6 @@ public record MemberProjectDto(
         Long projectId,
         Long memberId,
         String nickName,
-//        ProjectState state
         ProjectRole role
 ) {
 

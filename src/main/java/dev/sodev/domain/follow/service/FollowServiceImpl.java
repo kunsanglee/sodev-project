@@ -1,5 +1,7 @@
 package dev.sodev.domain.follow.service;
 
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Pageable;
 import dev.sodev.domain.follow.Follow;
 import dev.sodev.domain.follow.dto.FollowDto;
 import dev.sodev.domain.follow.dto.FollowRequest;
@@ -62,57 +64,15 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public FollowResponse<List<FollowDto>> getFollowers() {
-        String memberEmail = SecurityUtil.getMemberEmail();
-        Member member = memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        List<Follow> followers = followRepository.findAllByToMember(member);
-        List<FollowDto> list = followers.stream().map(follow ->
-                FollowDto.builder()
-                        .memberId(follow.getFromMember().getId())
-                        .email(follow.getFromMember().getEmail())
-                        .nickName(follow.getFromMember().getNickName())
-                        .build()).toList();
-        return new FollowResponse<>("팔로워 목록 조회를 완료했습니다.", list);
+    public Slice<FollowDto> getFollowerByMemberId(Long memberId, Pageable pageable) {
+        Slice<Follow> followings = followRepository.findAllByToMember_Id(memberId, pageable);
+        return followings.map(FollowDto::following);
     }
 
     @Override
-    public FollowResponse<List<FollowDto>> getFollowing() {
-        String memberEmail = SecurityUtil.getMemberEmail();
-        Member member = memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        List<Follow> following = followRepository.findAllByFromMember(member);
-        List<FollowDto> list = following.stream().map(follow ->
-                FollowDto.builder()
-                        .memberId(follow.getToMember().getId())
-                        .email(follow.getToMember().getEmail())
-                        .nickName(follow.getToMember().getNickName())
-                        .build()).toList();
-        return new FollowResponse<>("팔로잉 목록 조회를 완료했습니다.", list);
-    }
-
-    @Override
-    public FollowResponse<List<FollowDto>> getMembersFollowers(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        List<Follow> followers = followRepository.findAllByToMember(member);
-        List<FollowDto> list = followers.stream().map(follow ->
-                FollowDto.builder()
-                        .memberId(follow.getFromMember().getId())
-                        .email(follow.getFromMember().getEmail())
-                        .nickName(follow.getFromMember().getNickName())
-                        .build()).toList();
-        return new FollowResponse<>("팔로워 목록 조회를 완료했습니다.", list);
-    }
-
-    @Override
-    public FollowResponse<List<FollowDto>> getMembersFollowing(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        List<Follow> following = followRepository.findAllByFromMember(member);
-        List<FollowDto> list = following.stream().map(follow ->
-                FollowDto.builder()
-                        .memberId(follow.getToMember().getId())
-                        .email(follow.getToMember().getEmail())
-                        .nickName(follow.getToMember().getNickName())
-                        .build()).toList();
-        return new FollowResponse<>("팔로잉 목록 조회를 완료했습니다.", list);
+    public Slice<FollowDto> getFollowingByMemberId(Long memberId, Pageable pageable) {
+        Slice<Follow> followings = followRepository.findAllByFromMember_Id(memberId, pageable);
+        return followings.map(FollowDto::following);
     }
 
     private static Follow getFollow(Member fromMember) {

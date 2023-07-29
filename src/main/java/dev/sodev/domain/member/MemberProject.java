@@ -29,9 +29,6 @@ public class MemberProject extends BaseEntity {
     @JoinColumn(name = "project_id")
     private Project project;
 
-//    @Enumerated(EnumType.STRING)
-//    private ProjectState state;
-
     @Enumerated(EnumType.STRING)
     private ProjectRole role;
 
@@ -40,16 +37,26 @@ public class MemberProject extends BaseEntity {
     }
 
     public void addProjectAndMember(Member member, Project project) { // 회원의 프로젝트 참여 리스트, 프로젝트의 참여 회원 추가
-//        this.member = member;
-//        this.project = project;
         member.getMemberProject().add(this);
         project.getMembers().add(this);
     }
 
     public void addProjectAndApplicant(Member member, Project project) { // 회원의 프로젝트 지원 리스트, 프로젝트의 지원자 리스트에 추
-//        this.member = member;
-//        this.project = project;
         member.getApplies().add(this);
         project.getApplicants().add(this);
+    }
+
+    public void deleteProjectAndMember(Member member, Project project) {
+        member.getMemberProject().remove(this);
+        project.getMembers().remove(this);
+    }
+
+    public void deleteProjectApplicant(Member member, Project project) {
+        member.getApplies().remove(this);
+        project.getApplicants().remove(this);
+    }
+
+    public void updateRole(ProjectRole role) {
+        this.role = role;
     }
 }

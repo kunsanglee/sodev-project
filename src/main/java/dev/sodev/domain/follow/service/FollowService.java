@@ -1,5 +1,7 @@
 package dev.sodev.domain.follow.service;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import dev.sodev.domain.follow.dto.FollowDto;
 import dev.sodev.domain.follow.dto.FollowRequest;
 import dev.sodev.domain.follow.dto.FollowResponse;
@@ -16,11 +18,8 @@ public interface FollowService {
 
     FollowResponse<Void> unfollow(FollowRequest request);
 
-    FollowResponse<List<FollowDto>> getFollowers();
+    Slice<FollowDto> getFollowerByMemberId(Long memberId, Pageable pageable);
 
-    FollowResponse<List<FollowDto>> getFollowing();
+    Slice<FollowDto> getFollowingByMemberId(Long memberId, Pageable pageable);
 
-    FollowResponse<List<FollowDto>> getMembersFollowers(Long id);
-
-    FollowResponse<List<FollowDto>> getMembersFollowing(Long id);
 }

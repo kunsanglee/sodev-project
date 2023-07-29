@@ -1,12 +1,20 @@
 package dev.sodev.domain.project.service;
 
+
+import dev.sodev.domain.likes.Likes;
+import dev.sodev.domain.likes.dto.LikesProjectDto;
+import dev.sodev.domain.likes.repository.LikeRepository;
+import dev.sodev.domain.member.dto.MemberAppliedDto;
+import dev.sodev.domain.member.dto.MemberHistoryDto;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import dev.sodev.domain.comment.dto.CommentDto;
 import dev.sodev.domain.comment.repsitory.CommentCustomRepository;
 import dev.sodev.domain.enums.ProjectRole;
-import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.enums.SearchType;
 import dev.sodev.domain.enums.SkillCode;
-import dev.sodev.domain.likes.dto.LikesDto;
+import dev.sodev.domain.likes.dto.LikesMemberDto;
 import dev.sodev.domain.likes.repository.LikeCustomRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.MemberProject;
@@ -48,7 +56,7 @@ public class ProjectServiceImpl implements ProjectService{
     private final MemberProjectRepository memberProjectRepository;
     private final ProjectSkillRepository projectSkillRepository;
     private final MemberRepository memberRepository;
-    private final LikeCustomRepository likeCustomRepository;
+    private final LikeRepository likeRepository;
     private final CommentCustomRepository commentCustomRepository;
 
     private final ReviewRepository reviewRepository;
@@ -63,7 +71,7 @@ public class ProjectServiceImpl implements ProjectService{
     public ProjectResponse selectProject(Long projectId) {
         ProjectDto projectDto = projectSkillRepository.findProject(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
 
-        List<LikesDto> likesDtos = likeCustomRepository.likeList(projectId);
+        List<LikesMemberDto> likesDtos = likeRepository.likeList(projectId);
         List<CommentDto> commentDtos = commentCustomRepository.findAllByProject(projectId).stream().map(CommentDto::of).toList();
         List<MemberProject> memberProjects = memberProjectRepository.findAllByProjectId(projectId);
         List<MemberProjectDto> memberProjectDtos = memberProjects.stream().filter(mp -> !mp.getRole().equals(ProjectRole.APPLICANT)).map(MemberProjectDto::of).toList();
@@ -170,18 +178,24 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public Page<ProjectDto> likeProject(String userName, Pageable pageable) {
-        return null;
+    public Slice<LikesProjectDto> likeProject(Long memberId, Pageable pageable) {
+        checkMember();
+        Member member = memberRepository.getReferenceById(memberId);
+        return likeRepository.findLikedProjectsByMemberId(memberId, pageable);
     }
 
-//    @Override
-//    public Page<ProjectDto> offerProject(String userName) {
-//        return null;
-//    }
+    @Override
+    public Slice<MemberAppliedDto> applyProject(Long memberId, Pageable pageable) {
+        checkMember();
+        Member member = memberRepository.getReferenceById(memberId);
+        return memberProjectRepository.findAppliedProjectsByMemberId(memberId, pageable);
+    }
 
     @Override
-    public Page<ProjectDto> applyProject(String userName, Pageable pageable) {
-        return null;
+    public Slice<MemberHistoryDto> projectHistory(Long memberId, Pageable pageable) {
+        checkMember();
+        Member member = memberRepository.getReferenceById(memberId);
+        return memberProjectRepository.findHistoryProjectsByMemberId(memberId, pageable);
     }
 
     @Override
@@ -204,9 +218,59 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public Page<ProjectDto> projectHistory(String userName, Pageable pageable) {
-        return null;
+    public void acceptApplicant(Long projectId, MemberProjectDto memberProjectDto) {
+        Member member = checkMember();
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+        if (!project.getCreatedBy().equals(member.getEmail())) {
+            throw new SodevApplicationException(ErrorCode.NOT_CREATOR);
+        }
+
+        Member applicant = memberRepository.findById(memberProjectDto.memberId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        List<MemberProject> memberProjects = memberProjectRepository.findAllByProjectId(projectId);
+        MemberProject memberProject = memberProjects.stream().filter(mp -> mp.getMember().equals(applicant)).findFirst().orElseThrow(() -> new SodevApplicationException(ErrorCode.BAD_REQUEST));
+
+        try {
+            isAlreadyInProject(applicant); // 지원자가 현재 진행중이거나 생성한 프로젝트가 있는지 확인.
+            memberProject.updateRole(ProjectRole.MEMBER);
+            memberProject.addProjectAndMember(applicant, project); // 해당 project 에 지원자 합류.
+            log.info("프로젝트에 지원자 {} 합류", applicant.getNickName());
+
+            // TODO : 참여 알림 보내기 추가해야됨.
+
+        } catch (SodevApplicationException e) { // 이미 참여하고 있는 지원자의 경우
+            log.info("이미 참여하고 있는 지원자 {} -> throw", applicant.getNickName());
+            throw e;
+        } finally {
+            // 정상이든 아니든 지원자 리스트에서 삭제하고 테이블에서 삭제.
+            // 이미 프로젝트에 참여하고있는 지원자는 지원자 리스트에서 삭제.
+            memberProject.deleteProjectApplicant(applicant, project);
+
+            log.info("참여자 {}({})의 지원 삭제 완료", applicant.getNickName(), applicant.getId());
+        }
     }
+
+    @Override
+    public void declineApplicant(Long projectId, MemberProjectDto memberProjectDto) {
+        Member member = checkMember();
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+        if (!project.getCreatedBy().equals(member.getEmail())) {
+            throw new SodevApplicationException(ErrorCode.NOT_CREATOR);
+        }
+
+        Member applicant = memberRepository.findById(memberProjectDto.memberId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        List<MemberProject> memberProjects = memberProjectRepository.findAllByProjectId(projectId);
+        MemberProject memberProject = memberProjects.stream().filter(mp -> mp.getMember().equals(applicant)).findFirst().orElseThrow(() -> new SodevApplicationException(ErrorCode.BAD_REQUEST));
+
+        memberProject.deleteProjectApplicant(applicant, project);
+
+        memberProjectRepository.delete(memberProject); // MemberProject 테이블에서 데이터 삭제.
+        log.info("참여자 {}({})의 지원 삭제 완료", applicant.getNickName(), applicant.getId());
+
+        // TODO : 거절 알림 보내기 추가해야됨.
+
+    }
+
+
 
     @Override
     public void evaluationMembers(Long memberId, PeerReviewRequest request) {
