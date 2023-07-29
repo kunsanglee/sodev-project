@@ -2,13 +2,10 @@ package dev.sodev.domain.member.dto;
 
 import dev.sodev.domain.Images.Images;
 import dev.sodev.domain.enums.ProjectState;
-import dev.sodev.domain.follow.dto.FollowDto;
 import dev.sodev.domain.member.Member;
-import dev.sodev.domain.project.Project;
 import dev.sodev.domain.skill.Skill;
 import lombok.Builder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -18,19 +15,15 @@ public record MemberInfo(
         String phone,
         String introduce,
         Images memberImage,
-        List<FollowDto> follower,
-        List<FollowDto> following,
+        Integer follower,
+        Integer following,
         List<Skill> skills,
-        List<MemberProjectDto> projects,
-        List<MemberProjectDto> applyProjects
+        MemberProjectDto currentProject
 ) {
 
     public static MemberInfo from(Member member) {
 
-        List<FollowDto> followers = member.getFollowers().stream().map(FollowDto::follower).toList();
-        List<FollowDto> following = member.getFollowing().stream().map(FollowDto::following).toList();
-        List<MemberProjectDto> memberProjects = member.getMemberProject().stream().map(MemberProjectDto::of).toList();
-        List<MemberProjectDto> applyProjects = member.getApplies().stream().map(MemberProjectDto::of).toList();
+        MemberProjectDto currentProjectDto = member.getMemberProject().stream().filter(mp -> mp.getProject().getState().equals(ProjectState.PROGRESS) || mp.getProject().getState().equals(ProjectState.RECRUIT)).findFirst().map(MemberProjectDto::of).orElse(null);
 
         return MemberInfo.builder()
                 .email(member.getEmail())
@@ -38,11 +31,10 @@ public record MemberInfo(
                 .phone(member.getPhone())
                 .introduce(member.getIntroduce())
                 .memberImage(member.getImages())
-                .follower(followers)
-                .following(following)
+                .follower(member.getFollowers().size()) // 팔로워, 팔로잉 size 를 통해서 몇명인지만 확인.
+                .following(member.getFollowing().size())
+                .currentProject(currentProjectDto)
 //                .skills() // 구현해서 넣어야함.
-                .projects(memberProjects)
-                .applyProjects(applyProjects)
                 .build();
     }
 }

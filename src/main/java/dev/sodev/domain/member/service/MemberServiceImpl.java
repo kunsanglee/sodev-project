@@ -84,9 +84,6 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberInfo getMemberInfo(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        if (member.getRemovedAt() != null) {
-            throw new SodevApplicationException(ErrorCode.WITHDRAWAL_USER);
-        }
         return MemberInfo.from(member);
     }
 
@@ -125,12 +122,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     private Member getMemberBySecurity() {
-        Member member = memberRepository.findByEmail(getMemberEmail()).orElseThrow(() ->
+        return memberRepository.findByEmail(getMemberEmail()).orElseThrow(() ->
                 new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        if (member.getRemovedAt() != null) {
-            throw new SodevApplicationException(ErrorCode.WITHDRAWAL_USER);
-        }
-        return member;
     }
 
     @Override
