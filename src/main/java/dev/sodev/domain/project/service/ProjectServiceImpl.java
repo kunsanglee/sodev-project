@@ -1,21 +1,19 @@
 package dev.sodev.domain.project.service;
 
 
-import dev.sodev.domain.likes.Likes;
+import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.likes.dto.LikesProjectDto;
 import dev.sodev.domain.likes.repository.LikeRepository;
 import dev.sodev.domain.member.dto.MemberAppliedDto;
 import dev.sodev.domain.member.dto.MemberHistoryDto;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import dev.sodev.domain.comment.dto.CommentDto;
 import dev.sodev.domain.comment.repsitory.CommentCustomRepository;
 import dev.sodev.domain.enums.ProjectRole;
 import dev.sodev.domain.enums.SearchType;
 import dev.sodev.domain.enums.SkillCode;
 import dev.sodev.domain.likes.dto.LikesMemberDto;
-import dev.sodev.domain.likes.repository.LikeCustomRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.member.dto.MemberProjectDto;
@@ -39,7 +37,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

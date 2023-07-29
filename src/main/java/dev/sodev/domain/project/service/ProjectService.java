@@ -54,7 +54,5 @@ public interface ProjectService {
 
     void declineApplicant(Long projectId, MemberProjectDto memberProjectDto); // 프로젝트 지원자 거절
 
-    Page<ProjectDto> projectHistory(String userName, Pageable pageable);
-
     void evaluationMembers(Long memberId, PeerReviewRequest request);
 }
