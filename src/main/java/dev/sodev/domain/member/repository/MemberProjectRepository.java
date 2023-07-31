@@ -16,4 +16,6 @@ public interface MemberProjectRepository extends JpaRepository<MemberProject, Lo
     Optional<MemberProject> findAllByMemberId(Long memberId);
 
     MemberProject getReferenceByMemberId(Long memberId);
+
+    void deleteByProject_IdAndMember_Id(Long projectId, Long memberId);
 }

@@ -7,6 +7,8 @@ import dev.sodev.domain.likes.Likes;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -30,8 +32,9 @@ public class Project extends BaseEntity {
     private Integer be;
     private Integer fe;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private ProjectState state;
+    private ProjectState state = ProjectState.RECRUIT;
 
     private String registeredBy;
 
@@ -69,6 +72,20 @@ public class Project extends BaseEntity {
         this.startDate = request.start_date();
         this.endDate = request.end_date();
         this.recruitDate = request.recruit_date();
+    }
+
+    public void startProject() {
+        if (!this.state.equals(ProjectState.RECRUIT)) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "프로젝트 모집 단계에서만 시작할 수 있습니다.");
+        }
+        this.state = ProjectState.PROGRESS;
+    }
+
+    public void completeProject() {
+        if (!this.state.equals(ProjectState.PROGRESS)) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "프로젝트 진행 단계에서만 완료할 수 있습니다.");
+        }
+        this.state = ProjectState.COMPLETE;
     }
 
 }

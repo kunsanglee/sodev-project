@@ -46,7 +46,7 @@ import java.util.List;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class ProjectServiceImpl implements ProjectService{
+public class ProjectServiceImpl implements ProjectService {
 
     private final SkillRepository skillRepository;
     private final ProjectRepository projectRepository;
@@ -78,7 +78,6 @@ public class ProjectServiceImpl implements ProjectService{
         projectDto.addComments(commentDtos);
         projectDto.addMemberProjects(memberProjectDtos);
         projectDto.addApplicants(applicants);
-
 
         return ProjectResponse.of(projectDto);
     }
@@ -267,7 +266,25 @@ public class ProjectServiceImpl implements ProjectService{
 
     }
 
+    @Override
+    public void kickMember(Long projectId, MemberProjectDto memberProjectDto) {
+        // 내보낼 회원의 역할이 작성자면 퇴장시킬 수 없음.
+        if (memberProjectDto.role().equals(ProjectRole.CREATOR)) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "프로젝트 주인은 퇴장시킬 수 없습니다.");
+        }
 
+        // 요청하는 회원 체크(존재하는지, 역할이 CREATOR 인지)
+        Member member = checkMember();
+        ProjectRole role = memberProjectRepository.getReferenceByMemberId(member.getId()).getRole();
+
+        // 요청자의 역할이 CREATOR 가 아니면 에러
+        if (!role.equals(ProjectRole.CREATOR)) {
+            throw new SodevApplicationException(ErrorCode.NOT_CREATOR);
+        }
+
+        // 내보낼 회원의 MemberProject 삭제 -> cascade 로 인해 회원과 프로젝트 리스트에서도 삭제됨.
+        memberProjectRepository.deleteByProject_IdAndMember_Id(projectId, memberProjectDto.memberId());
+    }
 
     @Override
     public void evaluationMembers(Long memberId, PeerReviewRequest request) {
@@ -284,6 +301,29 @@ public class ProjectServiceImpl implements ProjectService{
 //        List<MemberProject> List = memberProjectRepository.findAllByMemberId(memberId);
         Member reviewMember = memberRepository.getReferenceById(memberId);
         reviewRepository.save(Review.of(reviewMember, request.ReviewComment()));
+    }
+
+    @Override
+    public void startProject(Long projectId) {
+        // 프로젝트 id 와 해당 프로젝트 작성자와 시작 요청자가 맞는지 확인
+        // 시작 종료 날짜에 대해서 처리가 필요한지?
+        // 프로젝트의 상태를 진행중으로 변경
+        Member member = checkMember();
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+        if (!project.getCreatedBy().equals(member.getEmail())) {
+            throw new SodevApplicationException(ErrorCode.NOT_CREATOR);
+        }
+        project.startProject();
+    }
+
+    @Override
+    public void completeProject(Long projectId) {
+        Member member = checkMember();
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+        if (!project.getCreatedBy().equals(member.getEmail())) {
+            throw new SodevApplicationException(ErrorCode.NOT_CREATOR);
+        }
+        project.completeProject();
     }
 
     private Member checkMember() { // 요청하는 회원이 존재하는지 확인
