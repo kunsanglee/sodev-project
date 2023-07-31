@@ -53,7 +53,7 @@ public class ProjectSkillCustomRepositoryImpl implements ProjectSkillCustomRepos
                                 Projections.fields(ProjectDto.class, list(Projections.fields(SkillDto.class, skill.name)).as("skills"),
                                         project.id, project.registeredBy,
                                         project.fe, project.be,
-                                        project.title, project.content,
+                                        project.title, project.content, project.state,
                                         project.startDate, project.endDate, project.recruitDate,
                                         project.createdAt, project.createdBy,
                                         project.modifiedAt, project.modifiedBy)));

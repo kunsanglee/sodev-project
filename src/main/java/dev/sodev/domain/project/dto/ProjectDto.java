@@ -1,6 +1,7 @@
 package dev.sodev.domain.project.dto;
 
 import dev.sodev.domain.comment.dto.CommentDto;
+import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.likes.dto.LikesMemberDto;
 import dev.sodev.domain.member.dto.MemberProjectDto;
 import dev.sodev.domain.project.Project;
@@ -21,6 +22,7 @@ public class ProjectDto {
     private Long id;
     private Integer be;
     private Integer fe;
+    private ProjectState state;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private LocalDateTime recruitDate;
@@ -44,6 +46,7 @@ public class ProjectDto {
                 .id(project.getId())
                 .be(project.getBe())
                 .fe(project.getFe())
+                .state(project.getState())
                 .startDate(project.getStartDate())
                 .endDate(project.getEndDate())
                 .recruitDate(project.getRecruitDate())

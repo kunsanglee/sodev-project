@@ -84,9 +84,24 @@ public class ProjectController {
         projectService.declineApplicant(projectId, memberProjectDto);
     }
 
+    @PostMapping("/{projectId}/kicks")
+    public void kickMember(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
+        projectService.kickMember(projectId, memberProjectDto);
+    }
+
     @PostMapping("/review/{memberId}")
-    public Response<Void> projectReview(@PathVariable Long memberId,@RequestBody PeerReviewRequest request) {
+    public Response<Void> projectReview(@PathVariable Long memberId, @RequestBody PeerReviewRequest request) {
         projectService.evaluationMembers(memberId, request);
         return Response.success();
+    }
+
+    @PostMapping("/{projectId}/start")
+    public void startProject(@PathVariable Long projectId) {
+        projectService.startProject(projectId);
+    }
+
+    @PostMapping("/{projectId}/complete")
+    public void completeProject(@PathVariable Long projectId) {
+        projectService.completeProject(projectId);
     }
 }
