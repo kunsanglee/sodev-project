@@ -16,8 +16,10 @@ public enum ErrorCode {
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 이메일 입니다."),
     FEED_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글 입니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글 입니다."),
+    SKILL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 기술스택입니다."),
     ALREADY_IN_PROJECT(HttpStatus.CONFLICT, "이미 참여중인 프로젝트가 있습니다."),
     NOT_CREATOR(HttpStatus.UNAUTHORIZED, "프로젝트 게시물 작성자만 접근 가능합니다"),
+    RECRUITMENT_EXCEED(HttpStatus.FORBIDDEN, "해당 직무의 모집인원이 다 찼습니다."),
 
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "유효하지 않는 비밀번호 입니다."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 후에 이용하실 수 있습니다."),

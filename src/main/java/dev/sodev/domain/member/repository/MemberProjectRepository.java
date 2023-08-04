@@ -18,4 +18,5 @@ public interface MemberProjectRepository extends JpaRepository<MemberProject, Lo
     MemberProject getReferenceByMemberId(Long memberId);
 
     void deleteByProject_IdAndMember_Id(Long projectId, Long memberId);
+
 }

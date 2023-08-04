@@ -31,7 +31,6 @@ public class CommentServiceImpl implements CommentService {
     private final MemberRepository memberRepository;
     private final ProjectRepository projectRepository;
     private final CommentRepository commentRepository;
-    private final CommentCustomRepository customCommentRepository;
 
     @Transactional
     @Override
@@ -52,7 +51,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentListResponse getAllCommentsByProjectId(Long projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
-        List<Comment> comments = customCommentRepository.findAllByProject(projectId);
+        List<Comment> comments = commentRepository.findAllByProject(projectId);
         List<CommentDto> commentDtos = comments.stream().map(CommentDto::of).toList();
         return CommentListResponse.builder().message("해당 게시글의 댓글 조회가 완료됐습니다.").comments(commentDtos).build();
     }
@@ -103,8 +102,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND));
         if (comment.isRemoved()) {
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "이미 삭제된 댓글입니다");
-        }
-        if (!comment.getMember().getId().equals(member.getId())) { // id로 비교해야 추후 회원이 이메일 변경을 하여도 원래 댓글 작성자와 같은지 비교 가능함.
+        } else if (!comment.getMember().getId().equals(member.getId())) { // id로 비교해야 추후 회원이 이메일 변경을 하여도 원래 댓글 작성자와 같은지 비교 가능함.
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "댓글 작성자가 일치하지 않습니다.");
         }
         return comment;

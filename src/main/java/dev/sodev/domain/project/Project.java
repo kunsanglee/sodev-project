@@ -4,14 +4,12 @@ import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.likes.Likes;
-import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -69,9 +67,9 @@ public class Project extends BaseEntity {
         this.content = request.content();
         this.be = request.be();
         this.fe = request.fe();
-        this.startDate = request.start_date();
-        this.endDate = request.end_date();
-        this.recruitDate = request.recruit_date();
+        this.startDate = request.startDate();
+        this.endDate = request.endDate();
+        this.recruitDate = request.recruitDate();
     }
 
     public void startProject() {

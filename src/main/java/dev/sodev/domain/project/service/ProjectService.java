@@ -1,9 +1,11 @@
 package dev.sodev.domain.project.service;
 
 
+import dev.sodev.domain.enums.ProjectRole;
 import dev.sodev.domain.likes.dto.LikesProjectDto;
 import dev.sodev.domain.member.dto.MemberAppliedDto;
 import dev.sodev.domain.member.dto.MemberHistoryDto;
+import dev.sodev.domain.project.dto.ProjectApplyDto;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -48,7 +50,7 @@ public interface ProjectService {
 
     Slice<MemberHistoryDto> projectHistory(Long memberId, Pageable pageable);
 
-    void applyProject(Long projectId); // 프로젝트 참여 지원하기
+    void applyProject(Long projectId, ProjectApplyDto roleType); // 프로젝트 참여 지원하기
 
     void acceptApplicant(Long projectId, MemberProjectDto memberProjectDto); // 프로젝트 지원자 수락
 
@@ -56,7 +58,7 @@ public interface ProjectService {
 
     void kickMember(Long projectId, MemberProjectDto memberProjectDto); // 참여인원 내보내기
 
-    void evaluationMembers(Long memberId, PeerReviewRequest request); // 프로젝트 완료 후 동료평가
+    void evaluationMembers(Long projectId, Long memberId, PeerReviewRequest request); // 프로젝트 완료 후 동료평가
 
     void startProject(Long projectId); // 프로젝트 시작
 

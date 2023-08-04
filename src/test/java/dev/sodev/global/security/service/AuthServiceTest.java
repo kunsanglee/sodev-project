@@ -6,6 +6,8 @@ import dev.sodev.domain.follow.repository.FollowCustomRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
 import dev.sodev.domain.member.repository.MemberRepository;
+import dev.sodev.domain.project.repository.ProjectRepository;
+import dev.sodev.domain.project.repository.ProjectSkillRepository;
 import dev.sodev.global.redis.RedisService;
 import dev.sodev.global.security.dto.JsonWebTokenDto;
 import dev.sodev.global.security.exception.JwtInvalidException;
@@ -40,6 +42,8 @@ public class AuthServiceTest {
     AuthService authService;
     CommentRepository commentRepository;
     FollowCustomRepository followCustomRepository;
+    ProjectRepository projectRepository;
+    ProjectSkillRepository projectSkillRepository;
 
     @BeforeEach
     public void setup() {
@@ -47,7 +51,7 @@ public class AuthServiceTest {
         passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         mockJwtIssuer = Mockito.mock(JsonWebTokenIssuer.class);
         redisService = Mockito.mock(RedisService.class);
-        authService = new AuthService(mockAuthRepository, passwordEncoder, mockJwtIssuer, redisService, commentRepository, followCustomRepository);
+        authService = new AuthService(mockAuthRepository, passwordEncoder, mockJwtIssuer, redisService, commentRepository, followCustomRepository, projectRepository, projectSkillRepository);
     }
 
     MemberLoginRequest getMemberLoginRequest(String memberEmail, String password) {

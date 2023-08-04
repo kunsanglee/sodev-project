@@ -17,7 +17,7 @@ public record MemberProjectDto(
                 .projectId(memberProject.getProject().getId())
                 .memberId(memberProject.getMember().getId())
                 .nickName(memberProject.getMember().getNickName())
-                .role(memberProject.getRole())
+                .role(memberProject.getProjectRole())
                 .build();
     }
 }

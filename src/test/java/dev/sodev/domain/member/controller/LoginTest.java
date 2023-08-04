@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -63,6 +64,7 @@ public class LoginTest {
 
     }
 
+    @WithMockUser
     @Test
     public void 로그인_성공_토큰을_반환받고_reids_캐시가_저장된다() throws Exception {
         // given
@@ -85,6 +87,7 @@ public class LoginTest {
         assertThat(redisService.hasKey(CACHEPREFIX + EMAIL)).isTrue();
     }
 
+    @WithMockUser
     @Test
     public void 로그인_아이디_오류_실패_토큰과_redis_캐시가_없어야_한다() throws Exception {
         // given
@@ -104,6 +107,7 @@ public class LoginTest {
         assertThat(redisService.hasKey(CACHEPREFIX + EMAIL)).isFalse();
     }
 
+    @WithMockUser
     @Test
     public void 로그인_비밀번호_오류_실패_토큰과_redis_캐시가_없어야_한다() throws Exception {
         // given

@@ -4,12 +4,12 @@ package dev.sodev.domain.member;
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.enums.ProjectRole;
 import dev.sodev.domain.project.Project;
-import dev.sodev.domain.enums.ProjectState;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 
 @Getter
 @Entity
@@ -29,8 +29,8 @@ public class MemberProject extends BaseEntity {
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @Enumerated(EnumType.STRING)
-    private ProjectRole role;
+    @Embedded
+    private ProjectRole projectRole;
 
     public static MemberProject of(Member member, Project project, ProjectRole role) {
         return new MemberProject(null, member, project, role);
@@ -57,6 +57,6 @@ public class MemberProject extends BaseEntity {
     }
 
     public void updateRole(ProjectRole role) {
-        this.role = role;
+        this.projectRole = role;
     }
 }
