@@ -7,6 +7,7 @@ import dev.sodev.domain.likes.service.LikeService;
 
 
 import dev.sodev.domain.member.dto.MemberProjectDto;
+import dev.sodev.domain.project.dto.ProjectApplyDto;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.dto.requset.PeerReviewRequest;
 import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
@@ -17,7 +18,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,8 +55,8 @@ public class ProjectController {
     }
 
     @PostMapping("/{projectId}/applies")
-    public Response<ProjectResponse> applyProject(@PathVariable Long projectId) {
-        projectService.applyProject(projectId);
+    public Response<ProjectResponse> applyProject(@PathVariable Long projectId, @RequestBody ProjectApplyDto roleType) {
+        projectService.applyProject(projectId, roleType);
         return Response.success();
     }
 
@@ -75,33 +75,38 @@ public class ProjectController {
     }
 
     @PostMapping("/{projectId}/applicants") // 프로젝트 지원자 수락
-    public void acceptApplicant(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
+    public Response<Void> acceptApplicant(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
         projectService.acceptApplicant(projectId, memberProjectDto);
+        return Response.success();
     }
 
     @DeleteMapping("/{projectId}/applicants") // 프로젝트 지원자 거절
-    public void declineApplicant(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
+    public Response<Void> declineApplicant(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
         projectService.declineApplicant(projectId, memberProjectDto);
+        return Response.success();
     }
 
     @PostMapping("/{projectId}/kicks")
-    public void kickMember(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
+    public Response<Void> kickMember(@PathVariable Long projectId, @RequestBody MemberProjectDto memberProjectDto) {
         projectService.kickMember(projectId, memberProjectDto);
+        return Response.success();
     }
 
-    @PostMapping("/review/{memberId}")
-    public Response<Void> projectReview(@PathVariable Long memberId, @RequestBody PeerReviewRequest request) {
-        projectService.evaluationMembers(memberId, request);
+    @PostMapping("/{projectId}/review/{memberId}")
+    public Response<Void> projectReview(@PathVariable Long projectId, @PathVariable Long memberId, @RequestBody PeerReviewRequest request) {
+        projectService.evaluationMembers(projectId, memberId, request);
         return Response.success();
     }
 
     @PostMapping("/{projectId}/start")
-    public void startProject(@PathVariable Long projectId) {
+    public Response<Void> startProject(@PathVariable Long projectId) {
         projectService.startProject(projectId);
+        return Response.success();
     }
 
     @PostMapping("/{projectId}/complete")
-    public void completeProject(@PathVariable Long projectId) {
+    public Response<Void> completeProject(@PathVariable Long projectId) {
         projectService.completeProject(projectId);
+        return Response.success();
     }
 }

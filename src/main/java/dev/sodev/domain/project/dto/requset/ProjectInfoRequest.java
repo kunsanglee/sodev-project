@@ -1,6 +1,7 @@
 package dev.sodev.domain.project.dto.requset;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import dev.sodev.domain.enums.ProjectRole;
 import dev.sodev.domain.enums.ProjectState;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.project.Project;
@@ -13,7 +14,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@Builder
 public record ProjectInfoRequest(
 
         @NotNull(message = "인원수를 입력해주세요.")
@@ -26,19 +27,19 @@ public record ProjectInfoRequest(
         @Future(message = "기간을 현재보다 과거로 지정할 수 없습니다.")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime start_date,
+        LocalDateTime startDate,
 
         @NotNull(message = "프로젝트 종료일을 선택해주세요.")
         @Future(message = "기간을 현재보다 과거로 지정할 수 없습니다.")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime end_date,
+        LocalDateTime endDate,
 
         @NotNull(message = "프로젝트 모집기간을 선택해주세요")
         @Future(message = "기간을 현재보다 과거로 지정할 수 없습니다.")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime recruit_date,
+        LocalDateTime recruitDate,
 
         @NotBlank(message = "제목은 공백이 불가합니다.")
         String title,
@@ -47,7 +48,11 @@ public record ProjectInfoRequest(
         String content,
 
         @NotNull(message = "사용 스킬을 최소 한개 이상 입력해주세요.")
-        List<String> skillSet) {
+        List<String> skillSet,
+
+        @NotNull
+        String roleType
+) {
 
         public static Project of(ProjectInfoRequest request, Member member){
                 return Project.builder()
@@ -57,9 +62,9 @@ public record ProjectInfoRequest(
                         .content(request.content())
                         .state(ProjectState.RECRUIT)
                         .registeredBy(member.getNickName())
-                        .recruitDate(request.recruit_date())
-                        .startDate(request.start_date())
-                        .endDate(request.end_date())
+                        .recruitDate(request.recruitDate())
+                        .startDate(request.startDate())
+                        .endDate(request.endDate())
                         .build();
         }
 
