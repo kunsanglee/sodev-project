@@ -9,6 +9,8 @@ import org.springframework.data.domain.Slice;
 
 public interface MemberProjectCustomRepository {
 
+    void deleteAllByApplicantId(Long memberId);
+
     Slice<MemberAppliedDto> findAppliedProjectsByMemberId(Long memberId, Pageable pageable);
 
     Slice<MemberHistoryDto> findHistoryProjectsByMemberId(Long memberId, Pageable pageable);

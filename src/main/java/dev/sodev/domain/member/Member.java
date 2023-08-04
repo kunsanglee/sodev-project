@@ -50,13 +50,15 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "fromMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Follow> following = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Where(clause = "role = 'CREATOR' or role = 'MEMBER'")
-    private List<MemberProject> memberProject;
+    private List<MemberProject> memberProject = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Where(clause = "role = 'APPLICANT'")
-    private List<MemberProject> applies; // 회원의 지원 프로젝트 리스트
+    private List<MemberProject> applies = new ArrayList<>(); // 회원의 지원 프로젝트 리스트
 
     @Builder.Default
     @OneToMany(mappedBy = "member")

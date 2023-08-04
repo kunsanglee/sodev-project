@@ -23,12 +23,18 @@ public class MemberProjectCustomRepositoryImpl implements MemberProjectCustomRep
 
     private final JPAQueryFactory queryFactory;
 
+    public void deleteAllByApplicantId(Long memberId) {
+        queryFactory.delete(memberProject)
+                .where(memberProject.member.id.eq(memberId).and(memberProject.projectRole.role.eq(ProjectRole.Role.APPLICANT)))
+                .execute();
+    }
+
     @Override
     public Slice<MemberAppliedDto> findAppliedProjectsByMemberId(Long memberId, Pageable pageable) {
         List<MemberAppliedDto> result = queryFactory.select(Projections.constructor(MemberAppliedDto.class, project.id, project.title))
                 .from(memberProject)
                 .join(memberProject.project, project)
-                .where(memberProject.member.id.eq(memberId).and(memberProject.role.eq(ProjectRole.APPLICANT)))
+                .where(memberProject.member.id.eq(memberId).and(memberProject.projectRole.role.eq(ProjectRole.Role.APPLICANT)))
                 .orderBy(project.id.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
@@ -43,7 +49,7 @@ public class MemberProjectCustomRepositoryImpl implements MemberProjectCustomRep
                 .from(memberProject)
                 .join(memberProject.project, project)
                 .on(project.state.eq(ProjectState.COMPLETE))
-                .where(memberProject.member.id.eq(memberId).and(memberProject.role.eq(ProjectRole.MEMBER).or(memberProject.role.eq(ProjectRole.CREATOR))))
+                .where(memberProject.member.id.eq(memberId).and(memberProject.projectRole.role.eq(ProjectRole.Role.MEMBER).or(memberProject.projectRole.role.eq(ProjectRole.Role.CREATOR))))
                 .orderBy(project.endDate.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)

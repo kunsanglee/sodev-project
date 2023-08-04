@@ -9,6 +9,8 @@ import dev.sodev.domain.member.dto.response.MemberJoinResponse;
 import dev.sodev.domain.member.dto.response.MemberUpdateResponse;
 import dev.sodev.domain.project.dto.ProjectDto;
 import dev.sodev.domain.project.service.ProjectService;
+import dev.sodev.domain.review.dto.ReviewDto;
+import dev.sodev.domain.review.service.ReviewService;
 import dev.sodev.global.Response;
 import dev.sodev.domain.member.dto.MemberInfo;
 import dev.sodev.domain.member.dto.UpdatePassword;
@@ -26,6 +28,7 @@ public class MemberController {
 
     private final MemberService memberService;
     private final ProjectService projectService;
+    private final ReviewService reviewService;
 
     @PostMapping("/join")
     public Response<MemberJoinResponse> join(@RequestBody @Valid MemberJoinRequest request) {
@@ -72,5 +75,9 @@ public class MemberController {
         return projectService.projectHistory(memberId, pageable);
     }
 
+    @GetMapping("/members/{memberId}/review") // 진행한 프로젝트 목록
+    public Slice<ReviewDto> getMemberReview(@PathVariable Long memberId, Pageable pageable) {
+        return reviewService.getReviews(memberId, pageable);
+    }
 
 }
