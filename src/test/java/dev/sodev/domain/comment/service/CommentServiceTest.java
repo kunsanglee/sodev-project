@@ -49,6 +49,7 @@ class CommentServiceTest {
 
     private Member getMember(String email, String nickName) {
         return Member.builder()
+                .id(1L)
                 .email(email)
                 .password("test1234!")
                 .nickName(nickName)
@@ -98,7 +99,7 @@ class CommentServiceTest {
         this.projectRepository = Mockito.mock(ProjectRepository.class);
         this.commentRepository = Mockito.mock(CommentRepository.class);
         this.customCommentRepository = Mockito.mock(CommentCustomRepositoryImpl.class);
-        this.commentService = new CommentServiceImpl(memberRepository, projectRepository, commentRepository, customCommentRepository);
+        this.commentService = new CommentServiceImpl(memberRepository, projectRepository, commentRepository);
     }
 
     @Test

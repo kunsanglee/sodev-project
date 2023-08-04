@@ -18,8 +18,6 @@ import dev.sodev.global.security.dto.JsonWebTokenDto;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,10 +29,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,7 +58,7 @@ public class FollowControllerTest {
     private String phone = "010-1234-1234";
 
 
-    private JsonWebTokenDto getAccessToken() throws Exception {
+    private JsonWebTokenDto getToken() throws Exception {
         MemberLoginRequest request = MemberLoginRequest.builder()
                 .email(email)
                 .password(password)
@@ -76,7 +71,7 @@ public class FollowControllerTest {
                 .andExpect(status().isOk()).andReturn();
 
         String accessToken = result.getResponse().getHeader("Authorization");
-        String refreshToken = result.getResponse().getCookie("refresh-token").toString();
+        String refreshToken = result.getResponse().getCookie("refresh-token").getValue();
         return new JsonWebTokenDto("ROLE_MEMBER", accessToken, refreshToken);
     }
 
@@ -102,7 +97,7 @@ public class FollowControllerTest {
         Member member2 = memberRepository.findByEmail("test"+email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
 
 
-        JsonWebTokenDto tokenDto = getAccessToken();
+        JsonWebTokenDto tokenDto = getToken();
 
         // when 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
@@ -140,7 +135,7 @@ public class FollowControllerTest {
         Member member1 = memberRepository.findByEmail(email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
         Member member2 = memberRepository.findByEmail("test"+email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
 
-        JsonWebTokenDto tokenDto = getAccessToken();
+        JsonWebTokenDto tokenDto = getToken();
 
         // 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
@@ -183,7 +178,7 @@ public class FollowControllerTest {
 
         Member member1 = memberRepository.findByEmail(email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
 
-        JsonWebTokenDto tokenDto = getAccessToken();
+        JsonWebTokenDto tokenDto = getToken();
 
         // when 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
@@ -209,7 +204,7 @@ public class FollowControllerTest {
 
         Member member1 = memberRepository.findByEmail(email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
 
-        JsonWebTokenDto tokenDto = getAccessToken();
+        JsonWebTokenDto tokenDto = getToken();
 
         // when 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
@@ -239,7 +234,7 @@ public class FollowControllerTest {
         Member member1 = memberRepository.findByEmail(email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
         Member member2 = memberRepository.findByEmail("test"+email).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
 
-        JsonWebTokenDto tokenDto = getAccessToken();
+        JsonWebTokenDto tokenDto = getToken();
 
         // 1번 회원이 2번 회원 팔로우
         mockMvc.perform(
