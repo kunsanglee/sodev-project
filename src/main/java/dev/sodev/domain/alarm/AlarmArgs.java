@@ -3,6 +3,8 @@ package dev.sodev.domain.alarm;
 
 public record AlarmArgs(
         Long fromUserId,
-        Long targetId
+        String fromUserNickName,
+        Long targetId,
+        String targetTitle
 ) {
 }
