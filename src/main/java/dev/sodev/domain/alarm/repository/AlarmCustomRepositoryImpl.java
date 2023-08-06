@@ -9,10 +9,12 @@ import dev.sodev.domain.member.Member;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlarmCustomRepositoryImpl implements AlarmCustomRepository {
@@ -30,7 +32,9 @@ public class AlarmCustomRepositoryImpl implements AlarmCustomRepository {
 
     @Override
     @Transactional
-    public void bulkAlarmsSave(List<Member> members, AlarmType alarmType, AlarmArgs args) {
+    public List<Alarm> bulkAlarmsSave(List<Member> members, AlarmType alarmType, AlarmArgs args) {
+
+        List<Alarm> result = new ArrayList<>();
 
         try {
             for (int i = 0; i < members.size(); i++) {
@@ -47,11 +51,15 @@ public class AlarmCustomRepositoryImpl implements AlarmCustomRepository {
                     em.flush();
                     em.clear();
                 }
+
+                result.add(alarm);
             }
-        } catch (Exception e) {
+        } catch (PersistenceException e) {
             // 예외 발생시 롤백이 자동으로 수행되며, 여기에는 오류 처리 로직이 들어갑니다.
             e.printStackTrace();
             throw new SodevApplicationException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
+
+        return result;
     }
 }
