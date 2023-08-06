@@ -17,7 +17,8 @@ public enum AlarmType {
     MEMBER_KICKED_OUT("team member kicked out."),
     PROJECT_STARTED("your project started!"),
     PROJECT_COMPLETED("your project completed!"),
-    PEER_REVIEW_CREATED("your peer review created!")
+    PEER_REVIEW_CREATED("your peer review created!"),
+    NEW_FOLLOWER("new follower!"),
     ;
 
     private final String alarmText;
