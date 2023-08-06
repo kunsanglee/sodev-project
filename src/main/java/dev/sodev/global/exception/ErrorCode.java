@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부에서 에러가 발생했습니다"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부에서 에러가 발생했습니다."),
     DUPLICATE_USER_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 아이디 입니다." ),
     DUPLICATE_USER_NICKNAME(HttpStatus.CONFLICT, "이미 존재하는 닉네임 입니다." ),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 입니다."),
@@ -20,6 +20,7 @@ public enum ErrorCode {
     ALREADY_IN_PROJECT(HttpStatus.CONFLICT, "이미 참여중인 프로젝트가 있습니다."),
     NOT_CREATOR(HttpStatus.UNAUTHORIZED, "프로젝트 게시물 작성자만 접근 가능합니다"),
     RECRUITMENT_EXCEED(HttpStatus.FORBIDDEN, "해당 직무의 모집인원이 다 찼습니다."),
+    ALARM_CONNECT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알람 연결도중 에러가 발생했습니다."),
 
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "유효하지 않는 비밀번호 입니다."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 후에 이용하실 수 있습니다."),

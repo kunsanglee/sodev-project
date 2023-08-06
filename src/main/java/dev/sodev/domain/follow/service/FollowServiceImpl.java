@@ -1,5 +1,9 @@
 package dev.sodev.domain.follow.service;
 
+import dev.sodev.domain.alarm.service.AlarmService;
+import dev.sodev.domain.enums.AlarmType;
+import dev.sodev.global.kafka.AlarmProducer;
+import dev.sodev.global.kafka.event.AlarmEvent;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Pageable;
 import dev.sodev.domain.follow.Follow;
@@ -28,6 +32,8 @@ public class FollowServiceImpl implements FollowService {
 
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
+    private final AlarmService alarmService;
+    private final AlarmProducer alarmProducer;
 
     @Override
     public FollowResponse<Void> follow(@Valid FollowRequest request) {
@@ -41,7 +47,12 @@ public class FollowServiceImpl implements FollowService {
         Follow follow = getFollow(fromMember);
         follow.follow(toMember);
 
+        log.info("팔로우 저장");
         followRepository.save(follow);
+
+        log.info("팔로우 알림 발송");
+        List<Member> receivers = alarmService.alarmsToOne(toMember);
+        alarmProducer.send(AlarmEvent.of(AlarmType.NEW_FOLLOWER, fromMember, null, receivers));
 
         return new FollowResponse<>(toMember.getNickName() + "님을 팔로우하기 시작했습니다!", null);
     }
@@ -58,6 +69,7 @@ public class FollowServiceImpl implements FollowService {
         Follow follow = followRepository.findByFromMemberAndToMember(fromMember, toMember);
         follow.unfollow(toMember);
 
+        log.info("팔로우 삭제");
         followRepository.delete(follow);
 
         return new FollowResponse<>(toMember.getNickName() + "님을 언팔로우 하였습니다.", null);

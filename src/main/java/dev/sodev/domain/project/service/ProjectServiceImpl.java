@@ -1,9 +1,6 @@
 package dev.sodev.domain.project.service;
 
 
-import dev.sodev.domain.alarm.Alarm;
-import dev.sodev.domain.alarm.AlarmArgs;
-import dev.sodev.domain.alarm.repository.AlarmRepository;
 import dev.sodev.domain.alarm.service.AlarmService;
 import dev.sodev.domain.comment.repsitory.CommentRepository;
 import dev.sodev.domain.enums.*;
@@ -12,6 +9,8 @@ import dev.sodev.domain.likes.repository.LikeRepository;
 import dev.sodev.domain.member.dto.MemberAppliedDto;
 import dev.sodev.domain.member.dto.MemberHistoryDto;
 import dev.sodev.domain.project.dto.ProjectApplyDto;
+import dev.sodev.global.kafka.AlarmProducer;
+import dev.sodev.global.kafka.event.AlarmEvent;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Pageable;
 import dev.sodev.domain.comment.dto.CommentDto;
@@ -59,7 +58,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
     private final AlarmService alarmService;
-    private final AlarmRepository alarmRepository;
+    private final AlarmProducer alarmProducer;
 
 
     @Override
@@ -120,7 +119,8 @@ public class ProjectServiceImpl implements ProjectService {
         projectSkillRepository.saveAll(skills, savedProject.getId());
 
         // 프로젝트 생성자를 팔로잉 하는 회원들에게 알림 발송 추가.
-        alarmService.alarmsToFollower(member.getId(), savedProject.getId(), AlarmType.FEED_CREATED);
+        List<Member> receivers = alarmService.alarmsToFollower(member);
+        alarmProducer.send(AlarmEvent.of(AlarmType.FEED_CREATED, member, project, receivers));
 
         ProjectDto response = ProjectDto.of(project);
 
@@ -151,7 +151,8 @@ public class ProjectServiceImpl implements ProjectService {
         projectSkillRepository.saveAll(skills, projectId );
 
         // 프로젝트 구성원들에게 프로젝트 수정 알림 추가.
-        alarmService.alarmsToMember(member.getId(), project.getId(), AlarmType.FEED_UPDATED);
+        List<Member> receivers = alarmService.alarmsToMember(project);
+        alarmProducer.send(AlarmEvent.of(AlarmType.FEED_UPDATED, member, project, receivers));
 
         return ProjectResponse.of("글 수정이 완료되었습니다.");
     }
@@ -232,7 +233,8 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 누군가 프로젝트 지원 요청을 하면 리스트에 추가되고, 해당 프로젝트 참여 인원에게 카프카 알림을 보냄.
         log.info("프로젝트 참여인원 알림 저장");
-        alarmService.alarmsToMember(applicant.getId(), project.getId(), AlarmType.APPLICANT_ON_FEED);
+        List<Member> receivers = alarmService.alarmsToMember(project);
+        alarmProducer.send(AlarmEvent.of(AlarmType.APPLICANT_ON_FEED, applicant, project, receivers));
     }
 
     @Override
@@ -264,7 +266,8 @@ public class ProjectServiceImpl implements ProjectService {
         memberProjectRepository.deleteAllByApplicantId(applicant.getId());
 
         // 프로젝트 구성원들과 합류된 지원자에게 알림 발송 추가해야됨.
-        alarmService.alarmsToMember(member.getId(), project.getId(), AlarmType.NEW_MEMBER_JOINED);
+        List<Member> receivers = alarmService.alarmsToMember(project);
+        alarmProducer.send(AlarmEvent.of(AlarmType.NEW_MEMBER_JOINED, member, project, receivers));
     }
 
     @Override
@@ -286,9 +289,8 @@ public class ProjectServiceImpl implements ProjectService {
         memberProjectRepository.delete(memberProject); // MemberProject 테이블에서 데이터 삭제.
         log.info("참여자 {}({})의 지원 삭제 완료", applicant.getNickName(), applicant.getId());
 
-        // 거절된 지원자에게 거절 알림 발송 추가.
-        alarmRepository.save(Alarm.of(applicant, AlarmType.TEAM_JOIN_FAILED, new AlarmArgs(member.getId(), project.getId())));
-
+        // 거절된 지원자에게 거절 알림 발송 추가. -> kafka produce
+        alarmProducer.send(AlarmEvent.of(AlarmType.TEAM_JOIN_FAILED, member, project, List.of(applicant)));
     }
 
     @Override
@@ -301,7 +303,8 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 요청하는 회원 체크(존재하는지, 역할이 CREATOR 인지)
         Member member = checkMember();
-        ProjectRole role = memberProjectRepository.getReferenceByMemberId(member.getId()).getProjectRole();
+        MemberProject memberProject = memberProjectRepository.getReferenceByMemberId(member.getId());
+        ProjectRole role = memberProject.getProjectRole();
 
         // 요청자의 역할이 CREATOR 가 아니면 에러
         if (!role.getRole().equals(ProjectRole.Role.CREATOR)) {
@@ -309,7 +312,9 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         // 프로젝트 구성원들에게 퇴장되는 회원의 퇴장 알림 발송 추가.
-        alarmService.alarmsToMember(member.getId(), projectId, AlarmType.MEMBER_KICKED_OUT);
+        List<Member> receivers = alarmService.alarmsToMember(memberProject.getProject());
+        alarmProducer.send(AlarmEvent.of(AlarmType.MEMBER_KICKED_OUT, member, memberProject.getProject(), receivers));
+        // ??? kicked 된 사람을 어디다 넣어야?
 
         // 내보낼 회원의 MemberProject 삭제 -> cascade 로 인해 회원과 프로젝트 리스트에서도 삭제됨.
         memberProjectRepository.deleteByProject_IdAndMember_Id(projectId, memberProjectDto.memberId());
@@ -343,8 +348,9 @@ public class ProjectServiceImpl implements ProjectService {
         // 평가 대상 회원의 리뷰 저장.
         reviewRepository.save(Review.of(targetMemberProject.getMember(), request.review()));
 
-        // 평가 알림 저장.
-        alarmRepository.save(Alarm.of(targetMemberProject.getMember(), AlarmType.PEER_REVIEW_CREATED, new AlarmArgs(member.getId(), targetMemberProject.getProject().getId())));
+        // 평가 알림 저장. -> kafka produce
+        List<Member> receivers = alarmService.alarmsToMember(writerProject);
+        alarmProducer.send(AlarmEvent.of(AlarmType.PEER_REVIEW_CREATED, member, writerProject, receivers));
     }
 
     @Override
@@ -360,8 +366,10 @@ public class ProjectServiceImpl implements ProjectService {
         project.startProject();
 
         // 프로젝트 구성원들과 프로젝트 피드를 좋아요 누른 회원들에게 프로젝트 시작 알림 추가.
-        alarmService.alarmsToMember(member.getId(), project.getId(), AlarmType.PROJECT_STARTED);
-        alarmService.alarmsToLikes(member.getId(), project.getId(), AlarmType.PROJECT_STARTED);
+        List<Member> receivers = alarmService.alarmsToMember(project);
+        receivers.addAll(alarmService.alarmsToLikes(project));
+        receivers = receivers.stream().distinct().toList();
+        alarmProducer.send(AlarmEvent.of(AlarmType.PROJECT_STARTED, member, project, receivers));
     }
 
     @Override
@@ -375,8 +383,10 @@ public class ProjectServiceImpl implements ProjectService {
         project.completeProject();
 
         // 프로젝트 구성원들에게 프로젝트 종료, 상호평가 진행 요청 알림 추가.
-        alarmService.alarmsToMember(member.getId(), project.getId(), AlarmType.PROJECT_COMPLETED);
-        alarmService.alarmsToLikes(member.getId(), project.getId(), AlarmType.PROJECT_COMPLETED);
+        List<Member> receivers = alarmService.alarmsToMember(project);
+        receivers.addAll(alarmService.alarmsToLikes(project));
+        receivers = receivers.stream().distinct().toList();
+        alarmProducer.send(AlarmEvent.of(AlarmType.PROJECT_COMPLETED, member, project, receivers));
     }
 
     // 요청하는 회원이 존재하는지 확인
