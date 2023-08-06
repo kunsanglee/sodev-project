@@ -32,6 +32,25 @@ spring:
       port: 6379
       timeout: 6 #  Redis 클라이언트가 Redis 서버에 연결하기 위해 대기하는 시간
 
+  kafka:
+    listener:
+      ack-mode: MANUAL
+    topic:
+      alarm: alarm
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: alarm
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json:
+          trusted.packages: 'java.util, java.lang, dev.sodev.global.kafka.event'
+
 jwt:
   secret: validSecretKeyvalidSecretKeyvalidSecretKeyvalidSecretKeyvalidSecretKeyvalidSecretKey
   refresh-secret: refreshSecretKeyrefreshSecretKeyrefreshSecretKeyrefreshSecretKeyrefreshSecretKey
