@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: /
+  - source: /home/ubuntu/sodev-project/
     destination: /home/ubuntu/sodev-project
     overwrite: yes
 
