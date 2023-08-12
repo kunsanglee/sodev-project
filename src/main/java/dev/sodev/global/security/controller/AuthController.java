@@ -6,17 +6,18 @@ import dev.sodev.global.Response;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.security.dto.JsonWebTokenDto;
 import dev.sodev.global.security.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
 
-import static dev.sodev.global.security.utils.SecurityUtil.getMemberEmail;
 
+@Tag(name = "Auth", description = "인증 api")
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/v1")
@@ -32,6 +33,7 @@ public class AuthController {
     private final long COOKIE_EXPIRATION = 1209600000; // 2주
 
     // 로그인 -> 토큰 발급
+    @Operation(summary = "로그인", description = "이메일과 비밀번호를 입력하여 로그인 요청합니다.")
     @PostMapping("/login")
     public Response<?> login(@RequestBody @Valid MemberLoginRequest request, HttpServletResponse response) {
 
@@ -53,6 +55,7 @@ public class AuthController {
 
 
     // 토큰 재발급
+    @Operation(summary = "토큰 재발급", description = "refresh 토큰으로 토큰 재발급 요청을 합니다.")
     @PostMapping("/reissue")
     public Response<?> reissue(@CookieValue(REFRESH_TOKEN) String refreshToken, HttpServletResponse response) {
         JsonWebTokenDto reissuedTokenDto = authService.reissue(refreshToken);
@@ -84,6 +87,7 @@ public class AuthController {
     }
 
     // 로그아웃
+    @Operation(summary = "로그아웃", description = "access, refresh 토큰으로 로그아웃 요청합니다.")
     @PostMapping("/logout")
     public Response<?> logout(@RequestHeader(AUTHORIZATION_HEADER) String accessToken,
                               @CookieValue(REFRESH_TOKEN) String refreshToken,
@@ -102,6 +106,7 @@ public class AuthController {
     }
 
     // 회원 탈퇴
+    @Operation(summary = "회원 탈퇴", description = "탈퇴하려는 회원의 비밀번호와 access, refresh 토큰으로 회원 탈퇴를 요청합니다.")
     @DeleteMapping("/members")
     public Response<?> withdrawalMember(@RequestBody @Valid MemberWithdrawal memberWithdrawal,
                                                            @RequestHeader(AUTHORIZATION_HEADER) String accessToken,

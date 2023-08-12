@@ -55,7 +55,9 @@ public class SecurityConfig {
                 // 인증
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests
-                                .requestMatchers("/v1", "/v1/join", "/v1/login", "/v1/reissue", "/health").permitAll()
+                                .requestMatchers("/v1", "/v1/join", "/v1/login", "/v1/reissue", "/health",
+                                        "/swagger-ui/**", "/api-docs", "/swagger-ui-custom.html",
+                                        "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers("/v1/admin").hasRole(ROLE_ADMIN)
                                 .anyRequest().hasAnyRole(ROLE_MEMBER, ROLE_ADMIN))
 

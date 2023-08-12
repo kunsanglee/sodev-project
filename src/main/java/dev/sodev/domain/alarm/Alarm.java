@@ -16,8 +16,6 @@ import org.hibernate.annotations.Where;
 @Table(name = "alarm", indexes = {
         @Index(name = "member_id_idx", columnList = "member_id")
 })
-//@SQLDelete(sql = "UPDATE alarm SET removed_at = NOW() WHERE id=?")
-//@Where(clause = "removed_at is NULL")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Alarm extends BaseEntity {
