@@ -6,9 +6,9 @@ import lombok.*;
 
 
 @Getter
-@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Entity
 public class Skill extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

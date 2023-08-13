@@ -1,15 +1,17 @@
 package dev.sodev.domain.project;
 
-import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.skill.Skill;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "project_skill", indexes = {
+        @Index(name = "idx_project_skill", columnList = "skill_id")
+})
+@Entity
 public class ProjectSkill {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,7 +1,6 @@
 package dev.sodev.domain.comment;
 
 import dev.sodev.domain.BaseEntity;
-import dev.sodev.domain.comment.dto.request.CommentRequest;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.project.Project;
 import jakarta.persistence.*;
@@ -15,6 +14,10 @@ import java.util.Optional;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "comment", indexes = {
+        @Index(name = "idx_comment_member", columnList = "member_id"),
+        @Index(name = "idx_comment_project", columnList = "project_id")
+})
 @Entity
 public class Comment extends BaseEntity {
 

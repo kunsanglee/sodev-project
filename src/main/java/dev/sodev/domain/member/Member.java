@@ -6,15 +6,11 @@ import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.Auth;
 import dev.sodev.domain.follow.Follow;
 import dev.sodev.domain.likes.Likes;
-import dev.sodev.global.exception.ErrorCode;
-import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +36,8 @@ public class Member extends BaseEntity {
     @Column(unique = true)
     private String nickName;
     private String phone;
-    private String introduce;
+    @Builder.Default
+    private String introduce = "asd";
 
     @Builder.Default
     @OneToMany(mappedBy = "toMember", cascade = CascadeType.REMOVE, orphanRemoval = true)

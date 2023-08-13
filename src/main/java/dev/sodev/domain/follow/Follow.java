@@ -7,9 +7,13 @@ import lombok.*;
 
 @Builder
 @Getter
-@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "follow", indexes = {
+        @Index(name = "idx_follow_from_member", columnList = "from_member"),
+        @Index(name = "idx_follow_to_member", columnList = "to_member")
+})
+@Entity
 public class Follow extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
