@@ -42,10 +42,12 @@ public class CommentServiceImpl implements CommentService {
             comment.confirmParent(commentRepository.findById(request.parentId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND)));
         }
         commentRepository.save(comment);
-
         CommentDto commentDto = CommentDto.of(comment);
 
-        return CommentResponse.builder().message("댓글 작성이 완료됐습니다.").comment(commentDto).build();
+        return CommentResponse.builder()
+                .message("댓글 작성이 완료됐습니다.")
+                .comment(commentDto)
+                .build();
     }
 
     @Override
@@ -53,7 +55,11 @@ public class CommentServiceImpl implements CommentService {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
         List<Comment> comments = commentRepository.findAllByProject(projectId);
         List<CommentDto> commentDtos = comments.stream().map(CommentDto::of).toList();
-        return CommentListResponse.builder().message("해당 게시글의 댓글 조회가 완료됐습니다.").comments(commentDtos).build();
+
+        return CommentListResponse.builder()
+                .message("해당 게시글의 댓글 조회가 완료됐습니다.")
+                .comments(commentDtos)
+                .build();
     }
 
     @Transactional
@@ -61,7 +67,11 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponse updateComment(Long projectId, CommentRequest request) {
         Comment comment = checkCondition(projectId, request.id());
         comment.updateContent(request.content());
-        return CommentResponse.builder().message("댓글 수정이 완료됐습니다.").comment(CommentDto.of(comment)).build();
+
+        return CommentResponse.builder()
+                .message("댓글 수정이 완료됐습니다.")
+                .comment(CommentDto.of(comment))
+                .build();
     }
 
 
@@ -74,7 +84,9 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> removableCommentList = comment.findRemovableList();
         commentRepository.deleteAll(removableCommentList);
 
-        return CommentResponse.builder().message("댓글 삭제가 완료됐습니다.").build();
+        return CommentResponse.builder()
+                .message("댓글 삭제가 완료됐습니다.")
+                .build();
     }
 
     @Override
@@ -84,7 +96,11 @@ public class CommentServiceImpl implements CommentService {
 
         List<Comment> allByMemberEmail = commentRepository.findAllByMemberEmail(member.getEmail());
         List<CommentDto> comments = allByMemberEmail.stream().map(CommentDto::of).toList();
-        return CommentListResponse.builder().message("회원님이 작성하신 댓글들의 조회를 완료했습니다.").comments(comments).build();
+
+        return CommentListResponse.builder()
+                .message("회원님이 작성하신 댓글들의 조회를 완료했습니다.")
+                .comments(comments)
+                .build();
     }
 
     @Override
@@ -93,13 +109,18 @@ public class CommentServiceImpl implements CommentService {
 
         List<Comment> allByMemberEmail = commentRepository.findAllByMemberId(member.getId());
         List<CommentDto> comments = allByMemberEmail.stream().map(CommentDto::of).toList();
-        return CommentListResponse.builder().message("요청하신 작성자의 댓글들을 조회했습니다.").comments(comments).build();
+
+        return CommentListResponse.builder()
+                .message("요청하신 작성자의 댓글들을 조회했습니다.")
+                .comments(comments)
+                .build();
     }
 
     private Comment checkCondition(Long projectId, Long commentId) {
         Member member = memberRepository.findByEmail(SecurityUtil.getMemberEmail()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND));
+
         if (comment.isRemoved()) {
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "이미 삭제된 댓글입니다");
         } else if (!comment.getMember().getId().equals(member.getId())) { // id로 비교해야 추후 회원이 이메일 변경을 하여도 원래 댓글 작성자와 같은지 비교 가능함.

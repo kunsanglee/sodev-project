@@ -10,9 +10,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "likes", indexes = {
+        @Index(name = "idx_likes_member", columnList = "member_id"),
+        @Index(name = "idx_likes_project", columnList = "project_id"),
+        @Index(name = "idx_likes_member_project", columnList = "member_id, project_id")
+})
+@Entity
 public class Likes extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

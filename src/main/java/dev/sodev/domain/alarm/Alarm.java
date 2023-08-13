@@ -14,7 +14,7 @@ import org.hibernate.annotations.Where;
 @Getter
 @Entity
 @Table(name = "alarm", indexes = {
-        @Index(name = "member_id_idx", columnList = "member_id")
+        @Index(name = "id_alarm_member", columnList = "member_id")
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

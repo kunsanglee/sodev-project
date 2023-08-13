@@ -2,7 +2,6 @@ package dev.sodev.domain.comment.repsitory;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.comment.Comment;
-import dev.sodev.domain.project.Project;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

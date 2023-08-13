@@ -12,9 +12,13 @@ import lombok.NoArgsConstructor;
 import org.hibernate.Hibernate;
 
 @Getter
-@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "member_project", indexes = {
+        @Index(name = "idx_member_project_member", columnList = "member_id"),
+        @Index(name = "idx_member_project_project", columnList = "project_id")
+})
+@Entity
 public class MemberProject extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
