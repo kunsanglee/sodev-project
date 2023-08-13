@@ -26,7 +26,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
 
@@ -35,6 +35,7 @@ public class FollowServiceImpl implements FollowService {
     private final AlarmService alarmService;
     private final AlarmProducer alarmProducer;
 
+    @Transactional
     @Override
     public FollowResponse<Void> follow(@Valid FollowRequest request) {
         String fromMemberEmail = SecurityUtil.getMemberEmail();
@@ -57,6 +58,7 @@ public class FollowServiceImpl implements FollowService {
         return new FollowResponse<>(toMember.getNickName() + "님을 팔로우하기 시작했습니다!", null);
     }
 
+    @Transactional
     @Override
     public FollowResponse<Void> unfollow(@Valid FollowRequest request) {
         String fromMemberEmail = SecurityUtil.getMemberEmail();
