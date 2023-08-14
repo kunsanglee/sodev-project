@@ -44,7 +44,7 @@ public class AlarmServiceImpl implements AlarmService {
     @Override
     public Slice<AlarmDto> alarmList(Pageable pageable) {
         String memberEmail = SecurityUtil.getMemberEmail();
-        Member member = memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = getMemberByEmail(memberEmail);
 
         return alarmRepository.findAllByMember(member, pageable).map(AlarmDto::of);
     }
@@ -106,7 +106,7 @@ public class AlarmServiceImpl implements AlarmService {
     @Override
     @Transactional
     public SseEmitter connectAlarm(String memberEmail) {
-        Member member = memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = getMemberByEmail(memberEmail);
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
         emitterRepository.save(member.getId(), emitter);
         emitter.onCompletion(() -> emitterRepository.delete(member.getId()));
@@ -122,5 +122,9 @@ public class AlarmServiceImpl implements AlarmService {
             throw new SodevApplicationException(ErrorCode.ALARM_CONNECT_ERROR);
         }
         return emitter;
+    }
+
+    private Member getMemberByEmail(String memberEmail) {
+        return memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }
