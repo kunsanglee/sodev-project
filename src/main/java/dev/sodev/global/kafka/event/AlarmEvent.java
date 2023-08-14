@@ -26,7 +26,7 @@ public record AlarmEvent(
 
         return AlarmEvent.builder()
                 .memberId(member.getId())
-                .projectId(project.getId())
+                .projectId(project == null ? null : project.getId())
                 .receiversId(receivers.stream().map(Member::getId).toList())
                 .alarmType(alarmType)
                 .args(args)
