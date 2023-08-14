@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -77,10 +78,10 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 검색", description = "프로젝트 제목, 내용, 작성자 이메일, 닉네임, 사용기술을 검색어로 해당하는 프로젝트의 리스트를 요청합니다.")
     @GetMapping("/search")
-    public Page<ProjectDto> searchAll(@RequestParam(required = false) String searchType,
-                                      @RequestParam(required = false) String keyword,
-                                      @RequestParam(required = false) List<String> skillSet,
-                                      Pageable pageable) {
+    public Slice<ProjectDto> searchAll(@RequestParam(required = false) String searchType,
+                                       @RequestParam(required = false) String keyword,
+                                       @RequestParam(required = false) List<String> skillSet,
+                                       Pageable pageable) {
         return projectService.searchProject(SearchType.valueOf(searchType), keyword, skillSet, pageable);
     }
 

@@ -18,7 +18,6 @@ import java.util.List;
 @Repository
 public class SkillCustomRepositoryImpl implements SkillCustomRepository{
 
-
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
     private final JdbcTemplate jdbcTemplate;
@@ -34,8 +33,7 @@ public class SkillCustomRepositoryImpl implements SkillCustomRepository{
     @Override
     @Transactional
     public void bulkUsageUpdate(List<Integer> skills){
-            String sql = "UPDATE skill SET usage = + 1 where skill_id =" +
-                    "(?)";
+            String sql = "UPDATE skill SET usage = + 1 where skill_id = (?)";
 
             jdbcTemplate.batchUpdate(sql,
                     skills,
