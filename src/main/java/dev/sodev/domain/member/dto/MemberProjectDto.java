@@ -8,7 +8,7 @@ import lombok.Builder;
 
 @Builder
 @Schema(description = "Member Project Dto")
-public record MemberProjectDto( // 여기부터 @Valid 달면서 @Schema 진행
+public record MemberProjectDto(
         @NotNull
         @Schema(description = "프로젝트 id", example = "1L")
         Long projectId,

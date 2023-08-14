@@ -42,13 +42,13 @@ public interface ProjectService {
 
     List<Integer> findAndSaveSkill(List<String> skills);
 
-    Page<ProjectDto> searchProject(SearchType searchType, String keyword, List<String> skillSet, Pageable pageable);
+    Slice<ProjectDto> searchProject(SearchType searchType, String keyword, List<String> skillSet, Pageable pageable);
 
-    Slice<LikesProjectDto> likeProject(Long memberId, Pageable pageable);
+    Slice<LikesProjectDto> getLikeProjects(Long memberId, Pageable pageable);
 
-    Slice<MemberAppliedDto> applyProject(Long memberId, Pageable pageable);
+    Slice<MemberAppliedDto> getApplyProjects(Long memberId, Pageable pageable);
 
-    Slice<MemberHistoryDto> projectHistory(Long memberId, Pageable pageable);
+    Slice<MemberHistoryDto> getHistoryProjects(Long memberId, Pageable pageable);
 
     void applyProject(Long projectId, ProjectApplyDto roleType); // 프로젝트 참여 지원하기
 

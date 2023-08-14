@@ -1,5 +1,5 @@
 package dev.sodev.domain.enums;
 
 public enum SearchType {
-    TITLE, CONTENT, EMAIL, NICKNAME, SKILL,
+    ALL, TITLE, CONTENT, EMAIL, NICKNAME, SKILL,
 }

@@ -7,7 +7,6 @@ import dev.sodev.domain.comment.dto.request.CommentRequest;
 import dev.sodev.domain.comment.dto.response.CommentListResponse;
 import dev.sodev.domain.comment.dto.response.CommentResponse;
 import dev.sodev.domain.comment.repsitory.CommentRepository;
-import dev.sodev.domain.comment.repsitory.CommentCustomRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.project.Project;
@@ -36,10 +35,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentResponse createComment(Long projectId, CommentRequest request) {
         Comment comment = request.of(request);
-        comment.confirmWriter(memberRepository.findByEmail(SecurityUtil.getMemberEmail()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND)));
-        comment.confirmProject(projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND)));
+        comment.confirmWriter(getMemberByEmail());
+        comment.confirmProject(getProjectById(projectId));
         if (request.parentId() != null) {
-            comment.confirmParent(commentRepository.findById(request.parentId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND)));
+            comment.confirmParent(getParentComment(request));
         }
         commentRepository.save(comment);
         CommentDto commentDto = CommentDto.of(comment);
@@ -52,7 +51,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentListResponse getAllCommentsByProjectId(Long projectId) {
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+        Project project = getProjectById(projectId);
         List<Comment> comments = commentRepository.findAllByProject(projectId);
         List<CommentDto> commentDtos = comments.stream().map(CommentDto::of).toList();
 
@@ -91,8 +90,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentListResponse getAllCommentsByMember() {
-        String memberEmail = SecurityUtil.getMemberEmail();
-        Member member = memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = getMemberByEmail();
 
         List<Comment> allByMemberEmail = commentRepository.findAllByMemberEmail(member.getEmail());
         List<CommentDto> comments = allByMemberEmail.stream().map(CommentDto::of).toList();
@@ -105,7 +103,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentListResponse getAllCommentsByOtherMember(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = getMemberById(memberId);
 
         List<Comment> allByMemberEmail = commentRepository.findAllByMemberId(member.getId());
         List<CommentDto> comments = allByMemberEmail.stream().map(CommentDto::of).toList();
@@ -116,16 +114,43 @@ public class CommentServiceImpl implements CommentService {
                 .build();
     }
 
+    // 댓글이 삭제됐는지, 삭제 요청하는 회원이 작성 회원과 같은지 확인
     private Comment checkCondition(Long projectId, Long commentId) {
-        Member member = memberRepository.findByEmail(SecurityUtil.getMemberEmail()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
-        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND));
+        Member member = getMemberByEmail();
+        Project project = getProjectById(projectId);
+        Comment comment = getCommentById(commentId);
 
         if (comment.isRemoved()) {
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "이미 삭제된 댓글입니다");
-        } else if (!comment.getMember().getId().equals(member.getId())) { // id로 비교해야 추후 회원이 이메일 변경을 하여도 원래 댓글 작성자와 같은지 비교 가능함.
+        } else if (!comment.getMember().getId().equals(member.getId())) {
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "댓글 작성자가 일치하지 않습니다.");
         }
         return comment;
     }
+
+    // id로 회원 조회
+    private Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // 이메일로 회원 조회
+    private Member getMemberByEmail() {
+        return memberRepository.findByEmail(SecurityUtil.getMemberEmail()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // id로 프로젝트 조회
+    private Project getProjectById(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
+    }
+
+    // 부모 댓글 조회
+    private Comment getParentComment(CommentRequest request) {
+        return getCommentById(request.parentId());
+    }
+
+    // id로 댓글 조회
+    private Comment getCommentById(Long commentId) {
+        return commentRepository.findById(commentId).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND));
+    }
+
 }

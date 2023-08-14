@@ -11,11 +11,8 @@ import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.member.Member;
-import dev.sodev.global.redis.CacheName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,17 +87,13 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberUpdateResponse update(MemberUpdateRequest request) {
-
         if (isDuplicatedNickName(request.nickName())) {
             throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_NICKNAME);
         }
 
         Member member = getMemberBySecurity();
 
-        member.updateNickName(request.nickName());
-        member.updatePhone(request.phone());
-        member.updateIntroduce(request.introduce());
-        member.updateImage(request.memberImage());
+        updateMemberInfo(request, member);
 
         return new MemberUpdateResponse("회원정보 수정이 완료됐습니다.");
     }
@@ -121,19 +114,25 @@ public class MemberServiceImpl implements MemberService {
         return new MemberUpdateResponse("비밀번호 변경이 완료됐습니다.");
     }
 
-    private Member getMemberBySecurity() {
-        return memberRepository.findByEmail(getMemberEmail()).orElseThrow(() ->
-                new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
     @Override
     public boolean isDuplicatedEmail(String email) {
         return memberRepository.existsByEmail(email);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public boolean isDuplicatedNickName(String nickName) {
         return memberRepository.existsByNickName(nickName);
+    }
+
+    private Member getMemberBySecurity() {
+        return memberRepository.findByEmail(getMemberEmail()).orElseThrow(() ->
+                new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    private static void updateMemberInfo(MemberUpdateRequest request, Member member) {
+        member.updateNickName(request.nickName());
+        member.updatePhone(request.phone());
+        member.updateIntroduce(request.introduce());
+        member.updateImage(request.memberImage());
     }
 }
