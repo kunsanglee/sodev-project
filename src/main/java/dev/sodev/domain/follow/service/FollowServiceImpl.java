@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,11 +40,9 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public FollowResponse<Void> follow(@Valid FollowRequest request) {
         String fromMemberEmail = SecurityUtil.getMemberEmail();
-        Member fromMember = memberRepository.findByEmail(fromMemberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        if (request.toId().equals(fromMember.getId())) {
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인을 팔로우할 수 없습니다.");
-        }
-        Member toMember = memberRepository.findById(request.toId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        Member fromMember = getMember(memberRepository.findByEmail(fromMemberEmail));
+        isOtherMember(request, fromMember, "본인을 팔로우할 수 없습니다.");
+        Member toMember = getMember(memberRepository.findById(request.toId()));
 
         Follow follow = getFollow(fromMember);
         follow.follow(toMember);
@@ -62,11 +61,9 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public FollowResponse<Void> unfollow(@Valid FollowRequest request) {
         String fromMemberEmail = SecurityUtil.getMemberEmail();
-        Member fromMember = memberRepository.findByEmail(fromMemberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        if (request.toId().equals(fromMember.getId())) {
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인을 언팔로우할 수 없습니다.");
-        }
-        Member toMember = memberRepository.findById(request.toId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+        Member fromMember = getMember(memberRepository.findByEmail(fromMemberEmail));
+        isOtherMember(request, fromMember, "본인을 언팔로우할 수 없습니다.");
+        Member toMember = getMember(memberRepository.findById(request.toId()));
 
         Follow follow = followRepository.findByFromMemberAndToMember(fromMember, toMember);
         follow.unfollow(toMember);
@@ -93,5 +90,17 @@ public class FollowServiceImpl implements FollowService {
         return Follow.builder()
                 .fromMember(fromMember)
                 .build();
+    }
+
+    // 회원 조회
+    private Member getMember(Optional<Member> memberRepository) {
+        return memberRepository.orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // 본인을 팔로우 하려는지 확인
+    private static void isOtherMember(FollowRequest request, Member fromMember, String message) {
+        if (request.toId().equals(fromMember.getId())) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, message);
+        }
     }
 }
