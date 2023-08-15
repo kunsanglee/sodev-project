@@ -1,10 +1,14 @@
 package dev.sodev.global.security.service;
 
+import dev.sodev.domain.alarm.repository.AlarmRepository;
 import dev.sodev.domain.comment.repsitory.CommentRepository;
 import dev.sodev.domain.enums.Auth;
 import dev.sodev.domain.follow.repository.FollowCustomRepository;
+import dev.sodev.domain.follow.repository.FollowRepository;
+import dev.sodev.domain.likes.repository.LikeRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
+import dev.sodev.domain.member.repository.MemberProjectRepository;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.project.repository.ProjectRepository;
 import dev.sodev.domain.project.repository.ProjectSkillRepository;
@@ -15,6 +19,7 @@ import dev.sodev.global.security.utils.JsonWebTokenIssuer;
 import dev.sodev.global.security.utils.SecurityUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,9 +46,12 @@ public class AuthServiceTest {
     RedisService redisService;
     AuthService authService;
     CommentRepository commentRepository;
-    FollowCustomRepository followCustomRepository;
+    FollowRepository followRepository;
     ProjectRepository projectRepository;
-    ProjectSkillRepository projectSkillRepository;
+    MemberProjectRepository memberProjectRepository;
+    AlarmRepository alarmRepository;
+    LikeRepository likeRepository;
+    EntityManager em;
 
     @BeforeEach
     public void setup() {
@@ -51,7 +59,14 @@ public class AuthServiceTest {
         passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         mockJwtIssuer = Mockito.mock(JsonWebTokenIssuer.class);
         redisService = Mockito.mock(RedisService.class);
-        authService = new AuthService(mockAuthRepository, passwordEncoder, mockJwtIssuer, redisService, commentRepository, followCustomRepository, projectRepository, projectSkillRepository);
+        commentRepository = Mockito.mock(CommentRepository.class);
+        followRepository = Mockito.mock(FollowRepository.class);
+        projectRepository = Mockito.mock(ProjectRepository.class);
+        alarmRepository = Mockito.mock(AlarmRepository.class);
+        likeRepository = Mockito.mock(LikeRepository.class);
+        memberProjectRepository = Mockito.mock(MemberProjectRepository.class);
+        em = Mockito.mock(EntityManager.class);
+        authService = new AuthService(mockAuthRepository, passwordEncoder, mockJwtIssuer, redisService, projectRepository, memberProjectRepository, likeRepository, followRepository, commentRepository, alarmRepository, em);
     }
 
     MemberLoginRequest getMemberLoginRequest(String memberEmail, String password) {

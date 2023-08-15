@@ -13,16 +13,15 @@ import java.util.List;
 
 @Builder
 public record AlarmEvent(
-        Long memberId, Long projectId, List<Long> receiversId, AlarmType alarmType, AlarmArgs args
+        Long memberId,
+        Long projectId,
+        List<Long> receiversId,
+        AlarmType alarmType,
+        AlarmArgs args
 ) {
     public static AlarmEvent of(AlarmType alarmType, Member member, Project project, List<Member> receivers) {
 
-        AlarmArgs args;
-        if (project == null) {
-            args = new AlarmArgs(member.getId(), member.getNickName(), null, null);
-        } else {
-            args = new AlarmArgs(member.getId(), member.getNickName(), project.getId(), project.getTitle());
-        }
+        AlarmArgs args = getAlarmArgs(member, project);
 
         return AlarmEvent.builder()
                 .memberId(member.getId())
@@ -31,5 +30,12 @@ public record AlarmEvent(
                 .alarmType(alarmType)
                 .args(args)
                 .build();
+    }
+
+    private static AlarmArgs getAlarmArgs(Member member, Project project) {
+        if (project == null) {
+            return new AlarmArgs(member.getId(), member.getNickName(), null, null);
+        }
+        return new AlarmArgs(member.getId(), member.getNickName(), project.getId(), project.getTitle());
     }
 }

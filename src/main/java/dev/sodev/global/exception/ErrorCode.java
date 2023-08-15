@@ -31,6 +31,6 @@ public enum ErrorCode {
     BAD_CREDENTIAL(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 맞지 않습니다."),
     ;
 
-    private HttpStatus status;
-    private String message;
+    private final HttpStatus status;
+    private final String message;
 }
