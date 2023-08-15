@@ -76,8 +76,8 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     public Slice<FollowDto> getFollowerByMemberId(Long memberId, Pageable pageable) {
-        Slice<Follow> followings = followRepository.findAllByToMember_Id(memberId, pageable);
-        return followings.map(FollowDto::follower);
+        Slice<Follow> followers = followRepository.findAllByToMember_Id(memberId, pageable);
+        return followers.map(FollowDto::follower);
     }
 
     @Override

@@ -37,9 +37,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = request.of(request);
         comment.confirmWriter(getMemberByEmail());
         comment.confirmProject(getProjectById(projectId));
-        if (request.parentId() != null) {
-            comment.confirmParent(getParentComment(request));
-        }
+        hasParentComment(request, comment);
         commentRepository.save(comment);
         CommentDto commentDto = CommentDto.of(comment);
 
@@ -120,12 +118,7 @@ public class CommentServiceImpl implements CommentService {
         Project project = getProjectById(projectId);
         Comment comment = getCommentById(commentId);
 
-        if (comment.isRemoved()) {
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "이미 삭제된 댓글입니다");
-        } else if (!comment.getMember().getId().equals(member.getId())) {
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "댓글 작성자가 일치하지 않습니다.");
-        }
-        return comment;
+        return isRemovedAndWriter(member, comment);
     }
 
     // id로 회원 조회
@@ -151,6 +144,21 @@ public class CommentServiceImpl implements CommentService {
     // id로 댓글 조회
     private Comment getCommentById(Long commentId) {
         return commentRepository.findById(commentId).orElseThrow(() -> new SodevApplicationException(ErrorCode.COMMENT_NOT_FOUND));
+    }
+
+    private void hasParentComment(CommentRequest request, Comment comment) {
+        if (request.parentId() != null) {
+            comment.confirmParent(getParentComment(request));
+        }
+    }
+
+    private static Comment isRemovedAndWriter(Member member, Comment comment) {
+        if (comment.isRemoved()) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "이미 삭제된 댓글입니다");
+        } else if (!comment.getMember().getId().equals(member.getId())) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "댓글 작성자가 일치하지 않습니다.");
+        }
+        return comment;
     }
 
 }
