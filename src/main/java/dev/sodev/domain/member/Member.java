@@ -36,24 +36,23 @@ public class Member extends BaseEntity {
     @Column(unique = true)
     private String nickName;
     private String phone;
-    @Builder.Default
-    private String introduce = "asd";
+    private String introduce;
 
     @Builder.Default
-    @OneToMany(mappedBy = "toMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "toMember")
     private List<Follow> followers = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "fromMember", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "fromMember")
     private List<Follow> following = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "member")
     @Where(clause = "role = 'CREATOR' or role = 'MEMBER'")
     private List<MemberProject> memberProject = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "member")
     @Where(clause = "role = 'APPLICANT'")
     private List<MemberProject> applies = new ArrayList<>(); // 회원의 지원 프로젝트 리스트
 
@@ -62,13 +61,11 @@ public class Member extends BaseEntity {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "member")
     private List<Likes> likes = new ArrayList<>();
 
     @Embedded
     private Images images;
-
-//    private LocalDateTime removedAt;
 
 
     // 비밀번호 변경, 회원 탈퇴 시, 비밀번호를 확인하여 일치하는지 확인
@@ -97,10 +94,8 @@ public class Member extends BaseEntity {
     }
 
     public void removeAllComments() {
-        for (Comment comment : comments) {
-//            comment.remove(); // 댓글을 논리적으로 삭제
-            comment.updateMember(null); // 회원과 댓글 연관관계 제거
-        }
+        comments.forEach(comment -> comment.updateMember(null)); // 회원과 댓글 연관관계 제거
+        comments.clear();
     }
 
 }

@@ -23,7 +23,12 @@ public record MemberInfo(
 
     public static MemberInfo from(Member member) {
 
-        MemberProjectDto currentProjectDto = member.getMemberProject().stream().filter(mp -> mp.getProject().getState().equals(ProjectState.PROGRESS) || mp.getProject().getState().equals(ProjectState.RECRUIT)).findFirst().map(MemberProjectDto::of).orElse(null);
+        MemberProjectDto currentProjectDto = member.getMemberProject()
+                .stream()
+                .filter(mp -> mp.getProject().getState().equals(ProjectState.PROGRESS) || mp.getProject().getState().equals(ProjectState.RECRUIT))
+                .findFirst()
+                .map(MemberProjectDto::of)
+                .orElse(null);
 
         return MemberInfo.builder()
                 .email(member.getEmail())
@@ -34,7 +39,6 @@ public record MemberInfo(
                 .follower(member.getFollowers().size()) // 팔로워, 팔로잉 size 를 통해서 몇명인지만 확인.
                 .following(member.getFollowing().size())
                 .currentProject(currentProjectDto)
-//                .skills() // 구현해서 넣어야함.
                 .build();
     }
 }
