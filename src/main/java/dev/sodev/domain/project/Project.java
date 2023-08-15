@@ -41,36 +41,25 @@ public class Project extends BaseEntity {
     private LocalDateTime recruitDate;
 
     @Builder.Default
-    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "project")
     private List<MemberProject> members = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "project")
     private List<MemberProject> applicants = new ArrayList<>(); // 지원자 리스트
 
     @Builder.Default
-    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "project")
     private List<ProjectSkill> skills = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "project")
     private List<Likes> likes = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "project")
     private List<Comment> comments = new ArrayList<>();
 
-
-
-    public void update(ProjectInfoRequest request) {
-        this.title = request.title();
-        this.content = request.content();
-        this.be = request.be();
-        this.fe = request.fe();
-        this.startDate = request.startDate();
-        this.endDate = request.endDate();
-        this.recruitDate = request.recruitDate();
-    }
 
     public void startProject() {
         if (!this.state.equals(ProjectState.RECRUIT)) {
@@ -86,4 +75,55 @@ public class Project extends BaseEntity {
         this.state = ProjectState.COMPLETE;
     }
 
+    public void update(ProjectInfoRequest request) {
+        updateTitle(request.title());
+        updateContent(request.content());
+        updateBe(request.be());
+        updateFe(request.fe());
+        updateStartDate(request.startDate());
+        updateEndDate(request.endDate());
+        updateRecruitDate(request.recruitDate());
+    }
+
+    private void updateTitle(String title) {
+        if (title != null) {
+            this.title = title;
+        }
+    }
+
+    private void updateContent(String content) {
+        if (content != null) {
+            this.content = content;
+        }
+    }
+
+    private void updateBe(Integer be) {
+        if (be != null) {
+            this.be = be;
+        }
+    }
+
+    private void updateFe(Integer fe) {
+        if (fe != null) {
+            this.fe = fe;
+        }
+    }
+
+    private void updateStartDate(LocalDateTime startDate) {
+        if (startDate != null) {
+            this.startDate = startDate;
+        }
+    }
+
+    private void updateEndDate(LocalDateTime endDate) {
+        if (endDate != null) {
+            this.endDate = endDate;
+        }
+    }
+
+    private void updateRecruitDate(LocalDateTime recruitDate) {
+        if (recruitDate != null) {
+            this.recruitDate = recruitDate;
+        }
+    }
 }
