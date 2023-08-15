@@ -22,10 +22,9 @@ public class SwaggerConfig {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer";
+    public static final String BEARER_FORMAT = "JWT";
 
     @Bean
-    // 운영 환경에는 Swagger를 비활성화하기 위해 추가했습니다.
-    @Profile("!prod")
     public OpenAPI openAPI() {
         String jwtSchemeName = AUTHORIZATION_HEADER;
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
@@ -34,7 +33,7 @@ public class SwaggerConfig {
                         .name(jwtSchemeName)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme(BEARER_PREFIX)
-                        .bearerFormat("JWT"));
+                        .bearerFormat(BEARER_FORMAT));
 
         // Swagger UI 접속 후, 딱 한 번만 accessToken을 입력해주면 모든 API에 토큰 인증 작업이 적용됩니다.
         return new OpenAPI()

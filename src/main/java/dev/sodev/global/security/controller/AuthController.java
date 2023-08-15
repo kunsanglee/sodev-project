@@ -24,12 +24,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthController {
 
+    private final AuthService authService;
+
     private final String AUTHORIZATION_HEADER = "Authorization";
     private final String REFRESH_TOKEN = "refresh-token";
     private final String BEARER_PREFIX = "Bearer ";
-
-    private final AuthService authService;
-
     private final long COOKIE_EXPIRATION = 1209600000; // 2주
 
     // 로그인 -> 토큰 발급
@@ -48,7 +47,6 @@ public class AuthController {
         response.addHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token.accessToken()); // access
         response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
 
-//        return Response.success(new MemberLoginResponse("로그인에 성공하였습니다."));
         return Response.success(token);
     }
 
@@ -73,17 +71,17 @@ public class AuthController {
 
             return Response.success(reissuedTokenDto);
 
-        } else { // Refresh Token 탈취 가능성
-            // Cookie 삭제 후 재로그인 유도
-            ResponseCookie responseCookie = ResponseCookie.from(REFRESH_TOKEN, "")
-                    .maxAge(0)
-                    .path("/")
-                    .build();
-
-            response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.getValue());
-
-            return Response.error(ErrorCode.ACCESS_UNAUTHORIZED.getMessage());
         }
+        // Refresh Token 탈취 가능성
+        // Cookie 삭제 후 재로그인 유도
+        ResponseCookie responseCookie = ResponseCookie.from(REFRESH_TOKEN, "")
+                .maxAge(0)
+                .path("/")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.getValue());
+
+        return Response.error(ErrorCode.ACCESS_UNAUTHORIZED.getMessage());
     }
 
     // 로그아웃
@@ -93,12 +91,12 @@ public class AuthController {
                               @CookieValue(REFRESH_TOKEN) String refreshToken,
                               HttpServletResponse response) {
 
+        // 로그아웃 처리하고, 사용자의 COOKIE 에 있는 refresh-token 을 파기처리함.
         authService.logout(accessToken, refreshToken);
         ResponseCookie responseCookie = ResponseCookie.from(REFRESH_TOKEN, "")
                 .maxAge(0)
                 .path("/")
                 .build();
-        // 쿠키 헤더에 포함하지말고 그냥 쿠키로 보내야될 것 같은데
 
         response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
 
@@ -109,9 +107,10 @@ public class AuthController {
     @Operation(summary = "회원 탈퇴", description = "탈퇴하려는 회원의 비밀번호와 access, refresh 토큰으로 회원 탈퇴를 요청합니다.")
     @DeleteMapping("/members")
     public Response<?> withdrawalMember(@RequestBody @Valid MemberWithdrawal memberWithdrawal,
-                                                           @RequestHeader(AUTHORIZATION_HEADER) String accessToken,
-                                                           @CookieValue(REFRESH_TOKEN) String refreshToken) {
+                                        @RequestHeader(AUTHORIZATION_HEADER) String accessToken,
+                                        @CookieValue(REFRESH_TOKEN) String refreshToken) {
         authService.withdrawal(memberWithdrawal, accessToken, refreshToken);
+
         return Response.success();
     }
 }

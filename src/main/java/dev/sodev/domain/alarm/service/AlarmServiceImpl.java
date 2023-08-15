@@ -30,7 +30,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class AlarmServiceImpl implements AlarmService {
 
     private final AlarmRepository alarmRepository;
@@ -74,7 +74,6 @@ public class AlarmServiceImpl implements AlarmService {
     }
 
     @Override
-    @Transactional
     public void sendAlarms(AlarmEvent event) {
         List<Member> members = new ArrayList<>();
         for (Long id : event.receiversId()) {
@@ -104,7 +103,6 @@ public class AlarmServiceImpl implements AlarmService {
     }
 
     @Override
-    @Transactional
     public SseEmitter connectAlarm(String memberEmail) {
         Member member = getMemberByEmail(memberEmail);
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
