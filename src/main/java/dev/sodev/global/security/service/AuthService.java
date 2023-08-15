@@ -1,16 +1,17 @@
 package dev.sodev.global.security.service;
 
-import dev.sodev.domain.comment.Comment;
+import dev.sodev.domain.alarm.repository.AlarmRepository;
 import dev.sodev.domain.comment.repsitory.CommentRepository;
 import dev.sodev.domain.enums.Auth;
-import dev.sodev.domain.follow.repository.FollowCustomRepository;
+import dev.sodev.domain.follow.repository.FollowRepository;
+import dev.sodev.domain.likes.repository.LikeRepository;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.member.dto.MemberWithdrawal;
 import dev.sodev.domain.member.dto.request.MemberLoginRequest;
+import dev.sodev.domain.member.repository.MemberProjectRepository;
 import dev.sodev.domain.member.repository.MemberRepository;
 import dev.sodev.domain.project.Project;
 import dev.sodev.domain.project.repository.ProjectRepository;
-import dev.sodev.domain.project.repository.ProjectSkillRepository;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.global.redis.CacheName;
@@ -20,6 +21,7 @@ import dev.sodev.global.security.exception.JwtInvalidException;
 import dev.sodev.global.security.utils.JsonWebTokenIssuer;
 import dev.sodev.global.security.utils.SecurityUtil;
 import io.jsonwebtoken.Claims;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -34,8 +36,9 @@ import java.util.List;
 
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
+@Transactional
+@Service
 public class AuthService {
 
     private final String GRANT_TYPE_BEARER = "Bearer";
@@ -46,19 +49,76 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JsonWebTokenIssuer jwtIssuer;
     private final RedisService redisService;
-    private final CommentRepository commentRepository;
-    private final FollowCustomRepository followCustomRepository;
     private final ProjectRepository projectRepository;
-    private final ProjectSkillRepository projectSkillRepository;
+    private final MemberProjectRepository memberProjectRepository;
+    private final LikeRepository likeRepository;
+    private final FollowRepository followRepository;
+    private final CommentRepository commentRepository;
+    private final AlarmRepository alarmRepository;
+    private final EntityManager em;
 
 
+    // 로그인
+    public JsonWebTokenDto login(MemberLoginRequest request) {
+        String email = request.email();
+        if (isCachedTokenValid(email)) {
+            return getCachedToken(email);
+        }
+
+        Member member = getMemberByEmail(email);
+        validatePassword(request.password(), member);
+
+        JsonWebTokenDto tokenDto = issueToken(member);
+        cacheToken(member.getEmail(), tokenDto);
+
+        return tokenDto;
+    }
+
+    // 토큰 재발급
+    public JsonWebTokenDto reissue(String refreshToken) {
+        Claims claims = parseAndValidRefreshToken(refreshToken);
+        Member member = getMemberByEmail(claims.getSubject());
+
+        JsonWebTokenDto jsonWebTokenDto = createJsonWebTokenDto(member);
+        cacheToken(member.getEmail(), jsonWebTokenDto);
+
+        return jsonWebTokenDto;
+    }
+
+    // 로그아웃
+    public void logout(String accessToken, String refreshToken) {
+        Claims claims = parseAndValidRefreshToken(refreshToken);
+        String resolvedAccessToken = resolveToken(accessToken);
+        String email = claims.getSubject();
+
+        deleteCache(email);
+        cacheTokenLogout(refreshToken, claims, resolvedAccessToken);
+    }
+
+    // 회원탈퇴
+    public void withdrawal(MemberWithdrawal memberWithdrawal, String accessToken, String refreshToken) {
+        String memberEmail = SecurityUtil.getMemberEmail();
+        Member member = getMemberWithComments(memberEmail);
+        validatePassword(memberWithdrawal.checkPassword(), member);
+        parseAndValidRefreshToken(refreshToken);
+        String resolvedAccessToken = resolveToken(accessToken);
+
+        deleteCache(member.getEmail());
+        cacheTokenWithdrawal(refreshToken, resolvedAccessToken);
+        bulkDeleteMemberData(member);
+
+        memberRepository.delete(member); // 회원 삭제
+    }
+
+    // 토큰 파싱.
     private String resolveToken(String accessToken) {
         if (StringUtils.hasText(accessToken) && accessToken.startsWith(GRANT_TYPE_BEARER)) {
             return accessToken.substring(7);
         }
-        return null;
+        throw new SodevApplicationException(ErrorCode.INVALID_TOKEN);
     }
 
+    // 토큰 생성.
     private JsonWebTokenDto createJsonWebTokenDto(Member member) {
         String memberEmail = member.getEmail();
         Auth authority = member.getAuth();
@@ -69,119 +129,98 @@ public class AuthService {
                 .build();
     }
 
-    public JsonWebTokenDto login(MemberLoginRequest request) {
+    // 이메일로 회원 조회.
+    private Member getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("username is not found"));
+    }
 
-        // 캐싱된게 남아있으면 accessToken 유효기간 검증
-        if (redisService.hasKey(CACHE_NAME_PREFIX + request.email())) {
-            log.info("캐시 남아있어서 들어옴");
-            JsonWebTokenDto tokenDto = (JsonWebTokenDto) redisService.get(CACHE_NAME_PREFIX + request.email());
-            Claims access = jwtIssuer.getClaimsFromAccessToken(tokenDto.accessToken());
-            if (access.getExpiration().after(new Date())) {
-                log.info("login 에서 redis 캐싱된 토큰 반환");
-                return tokenDto;
-            } else {
-                Claims refresh = jwtIssuer.getClaimsFromRefreshToken(tokenDto.refreshToken());
-                if (refresh.getExpiration().after(new Date())) {
-                    log.info("login 에서 reissue");
-                    // 만약 accessToken 은 만료, refreshToken 은 살아있다 -> silent refresh 사용자는 모르게 그냥 재발급
-                    return reissue(tokenDto.refreshToken());
-                }
-            }
-            // accessToken, refreshToken 유효기간 모두 만료 -> 재로그인
-            log.info("accessToken, refreshToken 모두 만료. 다시 로그인");
+    // 탈퇴시 댓글 fetch join 하여 조회.
+    private Member getMemberWithComments(String memberEmail) {
+        return memberRepository.findByEmailWithComments(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // redis 에 캐싱된 토큰이 유효한지 확인.
+    private boolean isCachedTokenValid(String email) {
+        if (!redisService.hasKey(CACHE_NAME_PREFIX + email)) {
+            return false;
         }
 
-        Member member = memberRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("username is not found"));
+        JsonWebTokenDto tokenDto = (JsonWebTokenDto) redisService.get(CACHE_NAME_PREFIX + email);
+        Claims accessTokenClaims = jwtIssuer.getClaimsFromAccessToken(tokenDto.accessToken());
+        Claims refreshTokenClaims = jwtIssuer.getClaimsFromRefreshToken(tokenDto.refreshToken());
 
-        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+        boolean isAccessTokenValid = accessTokenClaims.getExpiration().after(new Date());
+        boolean isRefreshTokenValid = refreshTokenClaims.getExpiration().after(new Date());
+
+        if (!isAccessTokenValid && isRefreshTokenValid) {
+            tokenDto = reissue(tokenDto.refreshToken());
+            cacheToken(email, tokenDto);
+        }
+
+        return isAccessTokenValid || isRefreshTokenValid;
+    }
+
+    // redis 에 캐싱된 토큰 있는지 확인.
+    private JsonWebTokenDto getCachedToken(String email) {
+        return (JsonWebTokenDto) redisService.get(CACHE_NAME_PREFIX + email);
+    }
+
+    // 비밀번호 검증.
+    private void validatePassword(String password, Member member) {
+        if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new BadCredentialsException("bad credential: using unmatched password");
         }
-
-        JsonWebTokenDto jsonWebTokenDto = createJsonWebTokenDto(member);
-        long expiration = jwtIssuer.getRefreshExpiration(jsonWebTokenDto);
-        log.info("정상회원 토큰 발급 + redis 에 토큰 저장");
-        redisService.set(CACHE_NAME_PREFIX + member.getEmail(), jsonWebTokenDto, (expiration));
-
-        return jsonWebTokenDto;
     }
 
-    public JsonWebTokenDto reissue(String refreshToken) {
+    // 토큰 발급.
+    private JsonWebTokenDto issueToken(Member member) {
+        return createJsonWebTokenDto(member);
+    }
 
-//        if (!StringUtils.hasText(refreshToken)) {
-//            throw new JwtInvalidException("invalid grant type");
-//        }
+    // redis 에 토큰 캐싱.
+    private void cacheToken(String email, JsonWebTokenDto tokenDto) {
+        long expiration = jwtIssuer.getRefreshExpiration(tokenDto);
+        redisService.set(CACHE_NAME_PREFIX + email, tokenDto, expiration);
+    }
 
+    // refresh 토큰 파싱, 유효성 검사.
+    private Claims parseAndValidRefreshToken(String refreshToken) {
         Claims claims = jwtIssuer.parseClaimsFromRefreshToken(refreshToken);
         if (claims == null) {
             throw new JwtInvalidException("not exists claims in token");
         }
-
-        Member member = memberRepository.findByEmail(claims.getSubject())
-                .orElseThrow(() -> new UsernameNotFoundException("username is not found"));
-
-        JsonWebTokenDto jsonWebTokenDto = createJsonWebTokenDto(member);
-        long expiration = jwtIssuer.getRefreshExpiration(jsonWebTokenDto);
-        redisService.set(CACHE_NAME_PREFIX + member.getEmail(), jsonWebTokenDto, expiration);
-
-        return jsonWebTokenDto;
+        return claims;
     }
 
-    // 로그아웃
-    public void logout(String accessToken, String refreshToken) {
+    // redis 에 캐싱된 데이터 삭제
+    private void deleteCache(String email) {
+        redisService.delete(CACHE_NAME_PREFIX + email);
+    }
 
-        Claims claims = jwtIssuer.parseClaimsFromRefreshToken(refreshToken);
-        if (claims == null) {
-            throw new JwtInvalidException("not exists claims in token");
-        }
-
-        String resolvedAccessToken = resolveToken(accessToken);
-
-        // redis 에 캐싱된 데이터 삭제
-        log.info("로그아웃 -> redis 에 캐싱된 로그인 데이터 삭제={}", claims.getSubject());
-        redisService.delete(CACHE_NAME_PREFIX + claims.getSubject());
-
-        // 로그아웃시 1주간 해당 유저의 accessToken, refreshToken 을 블랙리스트에 추가하고 추후 해당 토큰으로 요청시 에러 반환.
-        log.info("로그아웃한 access, refresh 토큰 logout 등록");
+    // 로그아웃시 1주간 해당 유저의 accessToken, refreshToken 을 블랙리스트에 추가하고 추후 해당 토큰으로 요청시 에러 반환.
+    private void cacheTokenLogout(String refreshToken, Claims claims, String resolvedAccessToken) {
         redisService.set(resolvedAccessToken, "logout", (claims.getExpiration().getTime() - new Date().getTime()));
         redisService.set(refreshToken, "logout", (claims.getExpiration().getTime() - new Date().getTime()));
-
     }
 
-    // 회원탈퇴
-    @Transactional
-    public void withdrawal(MemberWithdrawal memberWithdrawal, String accessToken, String refreshToken) {
-        log.info("회원탈퇴 메서드 시작");
+    // 탈퇴 회원과 연관되어있는 데이터(follow, like, memberProject, comment, project, alarm) 벌크 삭제
+    private void bulkDeleteMemberData(Member member) {
+        followRepository.deleteAllByMemberId(member.getId());
+        likeRepository.deleteAllByMemberId(member.getId());
+        memberProjectRepository.deleteAllByMemberId(member.getId());
+        member.removeAllComments();
+        List<Project> projectList = projectRepository.findAllByCreatedBy(member.getEmail());
+        projectList.forEach(p -> commentRepository.deleteAllByProjectId(p.getId()));
+        projectRepository.deleteAllByCreatedBy(member.getEmail()); // 이메일로 프로젝트 찾아서 삭제.
+        alarmRepository.deleteAllByMemberId(member.getId());
+        em.flush();
+        em.clear();
+    }
 
-        String memberEmail = SecurityUtil.getMemberEmail();
-        Member member = memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-
-        if (!passwordEncoder.matches(memberWithdrawal.checkPassword(), member.getPassword())) {
-            log.info("회원탈퇴 -> 비밀번호 오류.");
-            throw new SodevApplicationException(ErrorCode.INVALID_PASSWORD);
-        }
-
-        String resolvedAccessToken = resolveToken(accessToken);
-        Claims claims = jwtIssuer.parseClaimsFromRefreshToken(refreshToken);
-        if (claims == null) {
-            throw new JwtInvalidException("not exists claims in token");
-        }
-
-        if (resolvedAccessToken == null) {
-            log.info("유효하지 않은 토큰 -> 재로그인 요청");
-            throw new SodevApplicationException(ErrorCode.INVALID_TOKEN);
-        }
-
-        log.info("회원 탈퇴 -> redis 에 캐싱된 로그인 데이터 삭제={}", member.getEmail());
-        redisService.delete(CACHE_NAME_PREFIX + member.getEmail()); // 회원 로그인 캐시 삭제
+    // redis 에 탈퇴 회원 토큰 캐싱.
+    private void cacheTokenWithdrawal(String refreshToken, String resolvedAccessToken) {
         redisService.set(resolvedAccessToken, "withdrawal", TWO_WEEKS);
         redisService.set(refreshToken, "withdrawal", TWO_WEEKS);
-
-        log.info("탈퇴하는 회원의 모든 연관 댓글 삭제");
-        member.removeAllComments(); // 회원이 작성한 모든 댓글 삭제(댓글의 Member 를 null 로 하여 관계를 끊음)
-        projectRepository.deleteProjectByCreatedBy(member.getEmail()); // 이메일로 프로젝트 찾아서 삭제.
-
-        memberRepository.delete(member); // 회원 삭제
-        log.info("회원 탈퇴 완료={}", member.getEmail());
     }
 }
