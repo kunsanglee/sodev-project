@@ -102,7 +102,7 @@ class ProjectServiceImplTest {
     }
 
     private MemberProject getMemberProject(Member member, Project project) {
-        return MemberProject.of(member, project, ProjectRole.creatorOf(ProjectRole.RoleType.BE));
+        return MemberProject.of(member, project, ProjectRole.setProjectRole(ProjectRole.Role.CREATOR, ProjectRole.RoleType.BE));
     }
 
     @Test

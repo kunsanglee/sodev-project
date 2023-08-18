@@ -191,9 +191,9 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = getProjectById(projectId);
 
         String type = applyDto.roleType();
-        ProjectRole.RoleType role = getRoleType(type);
+        ProjectRole.RoleType roleType = getRoleType(type);
 
-        MemberProject memberProject = MemberProject.of(applicant, project, ProjectRole.applicantOf(role));
+        MemberProject memberProject = MemberProject.of(applicant, project, ProjectRole.setProjectRole(ProjectRole.Role.APPLICANT, roleType));
         memberProject.addProjectAndApplicant(applicant, project); // 프로젝트의 지원자리스트, 회원의 지원한 프로젝트 리스트에 추가.
 
         memberProjectRepository.save(memberProject);
@@ -214,7 +214,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 지원자가 현재 진행중이거나 생성한 프로젝트가 있는지 확인.
         isAlreadyInProject(applicant);
-        applicantMemberProject.updateRole(ProjectRole.memberOf(memberProjectDto.role().getRoleType()));
+        applicantMemberProject.updateRole(ProjectRole.setProjectRole(ProjectRole.Role.MEMBER, memberProjectDto.role().getRoleType()));
 
         // 해당 project 에 지원자 합류.
         applicantMemberProject.addProjectAndMember(applicant, project);
@@ -431,7 +431,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project savedProject = projectRepository.save(project);
 
         // memberProject 생성 후 member 와 project 연관관계 메서드 호출 후 memberProject 저장.
-        MemberProject memberProject = MemberProject.of(member, project, ProjectRole.creatorOf(roleType));
+        MemberProject memberProject = MemberProject.of(member, project, ProjectRole.setProjectRole(ProjectRole.Role.CREATOR, roleType));
         addAndSaveMemberProject(member, project, memberProject);
 
         // request 의 skill 들이 없으면 저장 후 리스트로 반환.

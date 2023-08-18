@@ -4,14 +4,11 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Embeddable
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class ProjectRole {
@@ -34,23 +31,9 @@ public class ProjectRole {
         BE
     }
 
-    public static ProjectRole creatorOf(ProjectRole.RoleType roleType) {
+    public static ProjectRole setProjectRole(ProjectRole.Role role, ProjectRole.RoleType roleType) {
         return ProjectRole.builder()
-                .role(Role.CREATOR)
-                .roleType(roleType)
-                .build();
-    }
-
-    public static ProjectRole memberOf(ProjectRole.RoleType roleType) {
-        return ProjectRole.builder()
-                .role(Role.MEMBER)
-                .roleType(roleType)
-                .build();
-    }
-
-    public static ProjectRole applicantOf(ProjectRole.RoleType roleType) {
-        return ProjectRole.builder()
-                .role(Role.APPLICANT)
+                .role(role)
                 .roleType(roleType)
                 .build();
     }
