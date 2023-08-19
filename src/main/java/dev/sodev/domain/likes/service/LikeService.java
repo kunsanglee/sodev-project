@@ -25,24 +25,43 @@ public class LikeService {
     private final MemberRepository memberRepository;
 
     public LikeResponse like(Long projectId) {
+        String memberEmail = isLoginMember();
+        Project project = getProjectById(projectId);
+        Member member = getReferenceByEmail(memberEmail);
 
-        // 로그인하지않은경우 에러반환
-        if(SecurityUtil.getMemberEmail()==null) throw new SodevApplicationException(ErrorCode.UNAUTHORIZED_USER);
-        // 좋아요 할 프로젝트가 없을경우 에러반환
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
-        // like 테이블에 값이 없으면 추가 있으면 삭제
-        Member member = memberRepository.getReferenceByEmail(SecurityUtil.getMemberEmail());
-        if(project.getCreatedBy().equals(SecurityUtil.getMemberEmail()))
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인이 작성한 게시물은 좋아요를 누를 수 없습니다.");
+        if(project.getCreatedBy().equals(memberEmail)) throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인이 작성한 게시물은 좋아요를 누를 수 없습니다.");
 
+        // like 테이블에 값이 없으면 추가 있으면 삭제.
         Likes likes = likeRepository.isProjectLikes(member.getId(), projectId);
-        if (likes==null) {
+        if (likes == null) {
             likeRepository.save(Likes.of(member, project));
-            return LikeResponse.builder().message(String.format("%s 을(를) 관심프로젝트에 저장하였습니다.", project.getTitle())).build();
-        } else {
-            likeRepository.delete(likes);
-            return LikeResponse.builder().message(String.format("%s 을(를) 관심프로젝트에서 삭제하였습니다.", project.getTitle())).build();
+            return LikeResponse.builder()
+                    .message(String.format("%s 을(를) 관심프로젝트에 저장하였습니다.", project.getTitle()))
+                    .build();
         }
+
+        likeRepository.delete(likes);
+
+        return LikeResponse.builder()
+                .message(String.format("%s 을(를) 관심프로젝트에서 삭제하였습니다.", project.getTitle()))
+                .build();
+    }
+
+    // 회원의 이메일로 조회.
+    private Member getReferenceByEmail(String memberEmail) {
+        return memberRepository.getReferenceByEmail(memberEmail);
+    }
+
+    // 로그인하지않은경우 에러반환.
+    private static String isLoginMember() {
+        String memberEmail = SecurityUtil.getMemberEmail();
+        if(memberEmail == null) throw new SodevApplicationException(ErrorCode.UNAUTHORIZED_USER);
+        return memberEmail;
+    }
+
+    // 좋아요 할 프로젝트가 없을경우 에러반환.
+    private Project getProjectById(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
     }
 
 }
