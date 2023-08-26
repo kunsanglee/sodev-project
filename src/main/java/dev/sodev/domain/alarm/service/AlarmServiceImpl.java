@@ -26,6 +26,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -33,12 +34,13 @@ import java.util.List;
 @Transactional
 public class AlarmServiceImpl implements AlarmService {
 
+    private static final String ALARM_NAME = "alarm";
+    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+
     private final AlarmRepository alarmRepository;
     private final MemberRepository memberRepository;
     private final EmitterRepository emitterRepository;
 
-    private static final String ALARM_NAME = "alarm";
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
 
     @Override
@@ -50,66 +52,71 @@ public class AlarmServiceImpl implements AlarmService {
     }
 
     @Override
-    public List<Member> alarmsToOne(Member member) {
-        return List.of(member);
-    }
-
-    @Override
-    public List<Member> alarmsToMember(Project project) {
-        return project.getMembers().stream()
-                .filter(mp -> !mp.getProjectRole().getRole().equals(ProjectRole.Role.APPLICANT))
-                .map(MemberProject::getMember)
-                .distinct()
-                .toList();
-    }
-
-    @Override
-    public List<Member> alarmsToFollower(Member member) {
-        return member.getFollowers().stream().map(Follow::getFromMember).toList();
-    }
-
-    @Override
-    public List<Member> alarmsToLikes(Project project) {
-        return project.getLikes().stream().map(Likes::getMember).toList();
-    }
-
-    @Override
     public void sendAlarms(AlarmEvent event) {
-        List<Member> members = new ArrayList<>();
-        for (Long id : event.receiversId()) {
-            members.add(memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND)));
-        }
-
+        List<Member> members = addReceiver(event);
         List<Alarm> alarms = alarmRepository.bulkAlarmsSave(members, event.alarmType(), event.args());
 
         log.info("send alarms");
-        for (Alarm a : alarms) {
-            emitterRepository.get(a.getMember().getId()).ifPresentOrElse(it -> {
-                        try {
-                            it.send(SseEmitter.event()
-                                    .id(a.getId().toString())
-                                    .name(ALARM_NAME)
-                                    .data(a.getType()) // ex) "APPLICANT_ON_FEED"
-                                    .data(a.getArgs()) // ex) {"fromUserId":2,"targetId":1}
-                                    .data(a.getCreatedAt())); // ex) "2023-08-05T21:23:13.078515"
-                        } catch (IOException exception) {
-                            emitterRepository.delete(a.getMember().getId());
-                            throw new SodevApplicationException(ErrorCode.ALARM_CONNECT_ERROR);
-                        }
-                    },
-                    () -> log.info("No emitter founded")
-            );
-        }
+        send(alarms);
     }
 
     @Override
     public SseEmitter connectAlarm(String memberEmail) {
         Member member = getMemberByEmail(memberEmail);
+        SseEmitter emitter = setupSseEmitter(member);
+
+        sendInitialNotification(emitter);
+        return emitter;
+    }
+
+    // 메일로 회원 조회.
+    private Member getMemberByEmail(String memberEmail) {
+        return memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // AlarmEvent 의 대상 반환.
+    private List<Member> addReceiver(AlarmEvent event) {
+        List<Member> members = new ArrayList<>();
+        event.receiversId().forEach(id -> memberRepository.findById(id).ifPresent(members::add));
+        return members;
+    }
+
+    // 알람 전송.
+    private void send(List<Alarm> alarms) {
+        alarms.forEach(alarm -> emitterRepository.get(alarm.getMember().getId())
+                .ifPresentOrElse(it -> {
+                            try {
+                                it.send(SseEmitter.event()
+                                        .id(alarm.getId().toString())
+                                        .name(ALARM_NAME)
+                                        .data(alarm.getType()) // ex) "APPLICANT_ON_FEED"
+                                        .data(alarm.getArgs()) // ex) {"fromUserId":2,"targetId":1}
+                                        .data(alarm.getCreatedAt())); // ex) "2023-08-05T21:23:13.078515"
+                            } catch (IOException exception) {
+                                deleteEmitter(alarm.getMember());
+                                throw new SodevApplicationException(ErrorCode.ALARM_CONNECT_ERROR);
+                            }
+                        },
+                        () -> log.info("No emitter founded")
+                ));
+    }
+
+    // emitter 삭제.
+    private void deleteEmitter(Member member) {
+        emitterRepository.delete(member.getId());
+    }
+
+    // SseEmitter 연결 설정.
+    private SseEmitter setupSseEmitter(Member member) {
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
         emitterRepository.save(member.getId(), emitter);
-        emitter.onCompletion(() -> emitterRepository.delete(member.getId()));
-        emitter.onTimeout(() -> emitterRepository.delete(member.getId()));
+        emitter.onCompletion(() -> deleteEmitter(member));
+        emitter.onTimeout(() -> deleteEmitter(member));
+        return emitter;
+    }
 
+    // 최초 알람 전송.
+    private static void sendInitialNotification(SseEmitter emitter) {
         try {
             log.info("send");
             emitter.send(SseEmitter.event()
@@ -119,10 +126,5 @@ public class AlarmServiceImpl implements AlarmService {
         } catch (IOException exception) {
             throw new SodevApplicationException(ErrorCode.ALARM_CONNECT_ERROR);
         }
-        return emitter;
-    }
-
-    private Member getMemberByEmail(String memberEmail) {
-        return memberRepository.findByEmail(memberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

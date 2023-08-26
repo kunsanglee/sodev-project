@@ -4,8 +4,14 @@ import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.Images.Images;
 import dev.sodev.domain.comment.Comment;
 import dev.sodev.domain.enums.Auth;
+import dev.sodev.domain.enums.ProjectRole;
 import dev.sodev.domain.follow.Follow;
+import dev.sodev.domain.follow.dto.FollowRequest;
 import dev.sodev.domain.likes.Likes;
+import dev.sodev.domain.member.dto.request.MemberUpdateRequest;
+import dev.sodev.domain.project.Project;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -98,4 +104,54 @@ public class Member extends BaseEntity {
         comments.clear();
     }
 
+    public void updateMemberInfo(MemberUpdateRequest request) {
+        this.updateNickName(request.nickName());
+        this.updatePhone(request.phone());
+        this.updateIntroduce(request.introduce());
+        this.updateImage(request.memberImage());
+    }
+
+    // 회원이 이미 진행중이거나, 참여중인 프로젝트가 있는지 확인.
+    public void isAlreadyInProject() {
+        this.getMemberProject().stream()
+                .map(MemberProject::getProjectRole)
+                .filter(pr -> pr.getRole().equals(ProjectRole.Role.CREATOR) || pr.getRole().equals(ProjectRole.Role.MEMBER))
+                .findAny()
+                .ifPresent(state -> {
+                    throw new SodevApplicationException(ErrorCode.ALREADY_IN_PROJECT);
+                });
+    }
+
+    // 작성자와 요청자가 다를경우 에러반환.
+    public void isCreator(Project project) {
+        if (!project.getCreatedBy().equals(this.getEmail())) throw new SodevApplicationException(ErrorCode.INVALID_PERMISSION);
+    }
+
+    public List<Member> alarmsToFollower() {
+        return this.getFollowers().stream().map(Follow::getFromMember).toList();
+    }
+
+    // 본인을 팔로우 하려는지 확인
+    public void isOtherMember(FollowRequest request, String message) {
+        if (request.toId().equals(this.getId())) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, message);
+        }
+    }
+
+    public Follow follow(Member targetMember) {
+        Follow follow = Follow.getFollow(this, targetMember);
+        this.getFollowing().add(follow);
+        targetMember.getFollowers().add(follow);
+        return follow;
+    }
+
+    public Follow unfollow(Member targetMember) {
+        Follow follow = this.getFollowing().stream()
+                .filter(f -> f.getToMember().equals(targetMember))
+                .findAny()
+                .orElseThrow(() -> new SodevApplicationException(ErrorCode.FOLLOW_NOT_FOUND));
+        this.getFollowing().remove(follow);
+        targetMember.followers.remove(follow);
+        return follow;
+    }
 }

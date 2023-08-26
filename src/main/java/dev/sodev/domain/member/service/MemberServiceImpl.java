@@ -92,8 +92,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         Member member = getMemberBySecurity();
-
-        updateMemberInfo(request, member);
+        member.updateMemberInfo(request);
 
         return new MemberUpdateResponse("회원정보 수정이 완료됐습니다.");
     }
@@ -127,12 +126,5 @@ public class MemberServiceImpl implements MemberService {
     private Member getMemberBySecurity() {
         return memberRepository.findByEmail(getMemberEmail()).orElseThrow(() ->
                 new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    private static void updateMemberInfo(MemberUpdateRequest request, Member member) {
-        member.updateNickName(request.nickName());
-        member.updatePhone(request.phone());
-        member.updateIntroduce(request.introduce());
-        member.updateImage(request.memberImage());
     }
 }

@@ -37,4 +37,11 @@ public class Follow extends BaseEntity {
         this.toMember = toMember;
         toMember.getFollowers().remove(this);
     }
+
+    public static Follow getFollow(Member fromMember, Member toMember) {
+        return Follow.builder()
+                .fromMember(fromMember)
+                .toMember(toMember)
+                .build();
+    }
 }

@@ -15,14 +15,6 @@ public interface AlarmService {
 
     Slice<AlarmDto> alarmList(Pageable pageable);
 
-    List<Member> alarmsToOne(Member member);
-
-    List<Member> alarmsToMember(Project project);
-
-    List<Member> alarmsToFollower(Member member);
-
-    List<Member> alarmsToLikes(Project project);
-
     void sendAlarms(AlarmEvent event);
 
     SseEmitter connectAlarm(String memberEmail);
