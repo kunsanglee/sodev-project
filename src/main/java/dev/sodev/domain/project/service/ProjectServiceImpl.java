@@ -53,6 +53,9 @@ import java.util.stream.Stream;
 @Transactional
 public class ProjectServiceImpl implements ProjectService {
 
+    public static final String BE = "BE";
+    public static final String FE = "FE";
+
     private final SkillRepository skillRepository;
     private final ProjectRepository projectRepository;
     private final MemberProjectRepository memberProjectRepository;
@@ -61,12 +64,9 @@ public class ProjectServiceImpl implements ProjectService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
-    private final AlarmService alarmService;
     private final AlarmProducer alarmProducer;
     private final EntityManager em;
 
-    public static final String BE = "BE";
-    public static final String FE = "FE";
 
 
     @Transactional(readOnly = true)
@@ -101,7 +101,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse createProject(ProjectInfoRequest request) {
         Member member = getCurrentMember();
-        isAlreadyInProject(member);
+        member.isAlreadyInProject();
         validateSkills(request);
 
         Project project = createNewProject(request, member);
@@ -115,13 +115,15 @@ public class ProjectServiceImpl implements ProjectService {
         validateUpdateRequest(request);
         Member member = getCurrentMember();
         Project project = getProjectWithMembersById(projectId);
-        isCreator(member, project);
+        member.isCreator(project);
 
         project.update(request);
 
         updateSkillAndProjectSkill(projectId, request);
 
-        sendNewProjectAlarm(alarmService.alarmsToMember(project), AlarmType.FEED_UPDATED, member, project);
+        List<Member> receivers = project.alarmsToMember();
+
+        sendNewProjectAlarm(receivers, AlarmType.FEED_UPDATED, member, project);
 
         return ProjectResponse.of("글 수정이 완료되었습니다.");
     }
@@ -130,7 +132,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectResponse deleteProject(Long projectId) {
         Member member = getCurrentMember();
         Project project = getProjectById(projectId);
-        isCreator(member, project);
+        member.isCreator(project);
 
         // memberProject, comments, likes, skills 다 bulk delete 하고 삭제.
         bulkDeleteMemberProject(projectId);
@@ -187,7 +189,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void applyProject(Long projectId, ProjectApplyDto applyDto) { // 프로젝트 참여 지원
         Member applicant = getCurrentMember();
-        isAlreadyInProject(applicant);
+        applicant.isAlreadyInProject();
         Project project = getProjectById(projectId);
 
         String type = applyDto.roleType();
@@ -200,41 +202,42 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 누군가 프로젝트 지원 요청을 하면 리스트에 추가되고, 해당 프로젝트 참여 인원에게 카프카 알림을 보냄.
         log.info("프로젝트 참여인원 알림 저장");
-        sendNewProjectAlarm(alarmService.alarmsToMember(project), AlarmType.APPLICANT_ON_FEED, applicant, project);
+        List<Member> receivers = project.alarmsToMember();
+        sendNewProjectAlarm(receivers, AlarmType.APPLICANT_ON_FEED, applicant, project);
     }
 
     @Override
     public void acceptApplicant(Long projectId, MemberProjectDto memberProjectDto) {
-        Member member = getCurrentMember();
         Project project = getProjectById(projectId);
-        isCreator(member, project);
+        project.isJoinable(memberProjectDto);
+        Member member = getCurrentMember();
+        member.isCreator(project);
         Member applicant = getMemberById(memberProjectDto.memberId());
-        MemberProject applicantMemberProject = getApplicantMemberProject(project, applicant);
-        isJoinable(memberProjectDto, project, applicantMemberProject);
 
         // 지원자가 현재 진행중이거나 생성한 프로젝트가 있는지 확인.
-        isAlreadyInProject(applicant);
+        applicant.isAlreadyInProject();
+        MemberProject applicantMemberProject = project.getApplicantMemberProject(applicant);
         applicantMemberProject.updateRole(ProjectRole.setProjectRole(ProjectRole.Role.MEMBER, memberProjectDto.role().getRoleType()));
 
         // 해당 project 에 지원자 합류.
         applicantMemberProject.addProjectAndMember(applicant, project);
-        log.info("프로젝트에 지원자 {} 합류", applicant.getNickName());
 
         // 팀에 합류한 지원자의 다른 지원들 모두 삭제.
         applicantMemberProject.deleteProjectApplicant(applicant, project);
         memberProjectRepository.deleteAllByApplicantId(applicant.getId());
 
         // 프로젝트 구성원들과 합류된 지원자에게 알림 발송.
-        sendNewProjectAlarm(alarmService.alarmsToMember(project), AlarmType.NEW_MEMBER_JOINED, member, project);
+        List<Member> receivers = project.alarmsToMember();
+        sendNewProjectAlarm(receivers, AlarmType.NEW_MEMBER_JOINED, member, project);
     }
 
     @Override
     public void declineApplicant(Long projectId, MemberProjectDto memberProjectDto) {
         Member member = getCurrentMember();
         Project project = getProjectById(projectId);
-        isCreator(member, project);
+        member.isCreator(project);
         Member applicant = getMemberById(memberProjectDto.memberId());
-        MemberProject memberProject = getApplicantMemberProject(project, applicant);
+        MemberProject memberProject = project.getApplicantMemberProject(applicant);
 
         // 거절당한 지원자의 지원 삭제.
         memberProject.deleteProjectApplicant(applicant, project);
@@ -255,13 +258,14 @@ public class ProjectServiceImpl implements ProjectService {
 
         Member member = getCurrentMember();
         Project project = getProjectById(projectId);
-        isCreator(member, project);
+        member.isCreator(project);
 
-        MemberProject memberProject = getMemberProject(member);
+        MemberProject memberProject = project.getMemberProject(member);
         ProjectRole role = memberProject.getProjectRole();
 
         // 프로젝트 구성원들에게 퇴장되는 회원의 퇴장 알림 발송 추가.
-        sendNewProjectAlarm(alarmService.alarmsToMember(memberProject.getProject()), AlarmType.MEMBER_KICKED_OUT, member, memberProject.getProject());
+        List<Member> receivers = project.alarmsToMember();
+        sendNewProjectAlarm(receivers, AlarmType.MEMBER_KICKED_OUT, member, memberProject.getProject());
 
         // 내보낼 회원의 MemberProject 삭제 -> cascade 로 인해 회원과 프로젝트 리스트에서도 삭제됨.
         memberProjectRepository.deleteByProject_IdAndMember_Id(projectId, memberProjectDto.memberId());
@@ -276,36 +280,41 @@ public class ProjectServiceImpl implements ProjectService {
                 .filter(mp -> mp.getMember().getId().equals(memberId))
                 .findAny()
                 .orElseThrow(() -> new SodevApplicationException(ErrorCode.BAD_REQUEST));
+        Member targetMember = targetMemberProject.getMember();
 
         // 평가자의 memberProject 조회.
-        MemberProject writerMemberProject = getMemberProject(member);
+        Project targetProject = targetMemberProject.getProject();
+        MemberProject writerMemberProject = targetProject.getMemberProject(member);
 
         // 평가자와 평가 대상 회원이 진행한 프로젝트의 id 가 일치하지 않는 경우 에러반환.
         Project writerProject = writerMemberProject.getProject();
 
         // 평가를 진행하는 조건에 부합하는지 확인.
-        isEvaluationAvailable(targetMemberProject, writerProject);
+        targetProject.isEvaluationAvailable(writerProject);
 
         // 평가 대상 회원의 리뷰 저장.
-        reviewRepository.save(Review.of(targetMemberProject.getMember(), request.review()));
+        reviewRepository.save(Review.of(targetMember, request.review()));
 
         // 평가 알림 저장. -> kafka produce
-        sendNewProjectAlarm(alarmService.alarmsToMember(writerProject), AlarmType.PEER_REVIEW_CREATED, member, writerProject);
+        List<Member> receivers = writerProject.alarmsToMember();
+        sendNewProjectAlarm(receivers, AlarmType.PEER_REVIEW_CREATED, member, writerProject);
     }
 
     @Override
     public void startProject(Long projectId) {
         Member member = getCurrentMember();
         Project project = getProjectById(projectId);
-        isCreator(member, project);
+        member.isCreator(project);
 
         // 프로젝트의 상태를 모집중 -> 진행중으로 변경.
         project.startProject();
 
         // 프로젝트 구성원들과 프로젝트 피드를 좋아요 누른 회원들에게 프로젝트 시작 알림 추가.
         List<Member> receiver = Stream.concat(
-                alarmService.alarmsToMember(project).stream(),
-                alarmService.alarmsToLikes(project).stream()).distinct().toList();
+                project.alarmsToMember().stream(),
+                project.alarmsToLikes().stream())
+                .distinct()
+                .toList();
 
         alarmProducer.send(AlarmEvent.of(AlarmType.PROJECT_STARTED, member, project, receiver));
     }
@@ -314,16 +323,19 @@ public class ProjectServiceImpl implements ProjectService {
     public void completeProject(Long projectId) {
         Member member = getCurrentMember();
         Project project = getProjectById(projectId);
-        isCreator(member, project);
+        member.isCreator(project);
 
         // 프로젝트 상태를 진행중 -> 완료로 변경.
         project.completeProject();
 
         // 프로젝트 구성원들에게 프로젝트 종료, 상호평가 진행 요청 알림 추가.
-        sendNewProjectAlarm(Stream.concat(
-                        alarmService.alarmsToMember(project).stream(),
-                        alarmService.alarmsToLikes(project).stream()).distinct().toList(),
-                AlarmType.PROJECT_COMPLETED, member, project);
+        List<Member> receivers = Stream.concat(
+                        project.alarmsToMember().stream(),
+                        project.alarmsToLikes().stream())
+                .distinct()
+                .toList();
+
+        sendNewProjectAlarm(receivers, AlarmType.PROJECT_COMPLETED, member, project);
     }
 
 
@@ -351,59 +363,11 @@ public class ProjectServiceImpl implements ProjectService {
         return projectRepository.findByIdWithMembers(projectId).orElseThrow(() -> new SodevApplicationException(ErrorCode.FEED_NOT_FOUND));
     }
 
-    // Member 의 MemberProject 존재하는지 확인.
-    private MemberProject getMemberProject(Member member) {
-        MemberProject memberProject = memberProjectRepository.getReferenceByMemberId(member.getId());
-        if (memberProject == null) throw new SodevApplicationException(ErrorCode.BAD_REQUEST);
-        return memberProject;
-    }
-
     // 지원자와 기존 팀원들을 partitioningBy 로 나눠서 지원자면 key 값으로 true, 지원자리스트, 팀원이면 key 값으로 false, 팀원 리스트가 Map 에 담겨 반환.
     public Map<Boolean, List<MemberProjectDto>> getApplicantsAndNonApplicants(List<MemberProject> memberProjects) {
         return memberProjects.stream()
                 .map(MemberProjectDto::of)
                 .collect(Collectors.partitioningBy(mp -> mp.role().getRole().equals(ProjectRole.Role.APPLICANT)));
-    }
-
-    // 작성자와 요청자가 다를경우 에러반환.
-    private static void isCreator(Member member, Project project) {
-        if (!project.getCreatedBy().equals(member.getEmail())) throw new SodevApplicationException(ErrorCode.INVALID_PERMISSION);
-    }
-
-    // 요청하는 회원이 이미 진행중이거나, 참여중인 프로젝트가 있는지 확인.
-    private static void isAlreadyInProject(Member member) {
-        member.getMemberProject().stream()
-                .map(MemberProject::getProjectRole)
-                .filter(pr -> pr.getRole().equals(ProjectRole.Role.CREATOR) || pr.getRole().equals(ProjectRole.Role.MEMBER))
-                .findAny()
-                .ifPresent(state -> {
-                    throw new SodevApplicationException(ErrorCode.ALREADY_IN_PROJECT);
-                });
-    }
-
-    // 해당 프로젝트의 직무 자리가 남아있는지 확인.
-    private static void isJoinable(MemberProjectDto memberProjectDto, Project project, MemberProject memberProject) {
-        long size = project.getMembers().stream()
-                .filter(m -> m.getProjectRole().getRoleType().equals(memberProjectDto.role().getRoleType()))
-                .count();
-
-        if (memberProject.getProjectRole().getRoleType().equals(ProjectRole.RoleType.BE)) { // 백앤드인 경우
-            if (project.getBe() - size <= 0) {
-                throw new SodevApplicationException(ErrorCode.RECRUITMENT_EXCEED);
-            }
-        } else { // 프론트앤드인 경우
-            if (project.getFe() - size <= 0) {
-                throw new SodevApplicationException(ErrorCode.RECRUITMENT_EXCEED);
-            }
-        }
-    }
-
-    // 동료평가시 평가하려는 회원의 프로젝트가 완료된 상태인지, 같은 프로젝트를 진행했는지 확인.
-    private static void isEvaluationAvailable(MemberProject targetMemberProject, Project writerProject) {
-        if (!writerProject.getState().equals(ProjectState.COMPLETE) ||
-                !writerProject.getId().equals(targetMemberProject.getProject().getId())) {
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST);
-        }
     }
 
     // roleType 추출 메서드.
@@ -441,7 +405,8 @@ public class ProjectServiceImpl implements ProjectService {
         updateSkillsAndSaveProjectSkill(savedProject, skills);
 
         // 프로젝트 생성자를 팔로잉 하는 회원들에게 알림 발송 추가.
-        sendNewProjectAlarm(alarmService.alarmsToFollower(member), AlarmType.FEED_CREATED, member, project);
+        List<Member> receivers = member.alarmsToFollower();
+        sendNewProjectAlarm(receivers, AlarmType.FEED_CREATED, member, project);
         return project;
     }
 
@@ -480,14 +445,6 @@ public class ProjectServiceImpl implements ProjectService {
         if (request.skillSet().stream().anyMatch(skill -> SkillCode.findSkillCode(skill) == null)) {
             throw new SodevApplicationException(ErrorCode.SKILL_NOT_FOUND, "목록에 없는 기술스택입니다.");
         }
-    }
-
-    // 지원자의 memberProject 반환.
-    private static MemberProject getApplicantMemberProject(Project project, Member applicant) {
-        return project.getApplicants().stream()
-                .filter(mp -> mp.getMember().equals(applicant))
-                .findFirst()
-                .orElseThrow(() -> new SodevApplicationException(ErrorCode.BAD_REQUEST));
     }
 
     // ProjectInfoRequest 유효성 검증 메서드.

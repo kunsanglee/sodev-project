@@ -37,13 +37,13 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 @Service
 public class AuthService {
 
-    private final String GRANT_TYPE_BEARER = "Bearer";
-    private final String CACHE_NAME_PREFIX = CacheName.MEMBER + "::";
-    private final long TWO_WEEKS = 1000 * 60 * 60 * 12 * 14;
+    private static final String GRANT_TYPE_BEARER = "Bearer";
+    private static final String CACHE_NAME_PREFIX = CacheName.MEMBER + "::";
+    private static final long TWO_WEEKS = 1000 * 60 * 60 * 12 * 14;
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -75,6 +75,7 @@ public class AuthService {
     }
 
     // 토큰 재발급
+    @Transactional
     public JsonWebTokenDto reissue(String refreshToken) {
         Claims claims = parseAndValidRefreshToken(refreshToken);
         Member member = getMemberByEmail(claims.getSubject());
@@ -86,6 +87,7 @@ public class AuthService {
     }
 
     // 로그아웃
+    @Transactional
     public void logout(String accessToken, String refreshToken) {
         Claims claims = parseAndValidRefreshToken(refreshToken);
         String resolvedAccessToken = resolveToken(accessToken);
@@ -96,6 +98,7 @@ public class AuthService {
     }
 
     // 회원탈퇴
+    @Transactional
     public void withdrawal(MemberWithdrawal memberWithdrawal, String accessToken, String refreshToken) {
         String memberEmail = SecurityUtil.getMemberEmail();
         Member member = getMemberWithComments(memberEmail);

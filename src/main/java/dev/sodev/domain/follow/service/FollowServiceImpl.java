@@ -1,6 +1,5 @@
 package dev.sodev.domain.follow.service;
 
-import dev.sodev.domain.alarm.service.AlarmService;
 import dev.sodev.domain.enums.AlarmType;
 import dev.sodev.global.kafka.AlarmProducer;
 import dev.sodev.global.kafka.event.AlarmEvent;
@@ -31,28 +30,25 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
 
+    public static final String SELF_FOLLOW = "본인을 팔로우할 수 없습니다.";
+    public static final String SELF_UNFOLLOW = "본인을 언팔로우할 수 없습니다.";
+
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
-    private final AlarmService alarmService;
     private final AlarmProducer alarmProducer;
+
 
     @Transactional
     @Override
     public FollowResponse<Void> follow(@Valid FollowRequest request) {
-        String fromMemberEmail = SecurityUtil.getMemberEmail();
-        Member fromMember = getMember(memberRepository.findByEmail(fromMemberEmail));
-        isOtherMember(request, fromMember, "본인을 팔로우할 수 없습니다.");
-        Member toMember = getMember(memberRepository.findById(request.toId()));
+        Member fromMember = getCurrentMember();
+        fromMember.isOtherMember(request, SELF_FOLLOW);
+        Member toMember = getTargetMember(request);
 
-        Follow follow = getFollow(fromMember);
-        follow.follow(toMember);
-
-        log.info("팔로우 저장");
+        Follow follow = fromMember.follow(toMember);
         followRepository.save(follow);
 
-        log.info("팔로우 알림 발송");
-        List<Member> receivers = alarmService.alarmsToOne(toMember);
-        alarmProducer.send(AlarmEvent.of(AlarmType.NEW_FOLLOWER, fromMember, null, receivers));
+        sendFollowAlarm(fromMember, toMember);
 
         return new FollowResponse<>(toMember.getNickName() + "님을 팔로우하기 시작했습니다!", null);
     }
@@ -60,16 +56,12 @@ public class FollowServiceImpl implements FollowService {
     @Transactional
     @Override
     public FollowResponse<Void> unfollow(@Valid FollowRequest request) {
-        String fromMemberEmail = SecurityUtil.getMemberEmail();
-        Member fromMember = getMember(memberRepository.findByEmail(fromMemberEmail));
-        isOtherMember(request, fromMember, "본인을 언팔로우할 수 없습니다.");
-        Member toMember = getMember(memberRepository.findById(request.toId()));
+        Member fromMember = getCurrentMember();
+        fromMember.isOtherMember(request, SELF_UNFOLLOW);
+        Member toMember = getTargetMember(request);
 
-        Follow follow = followRepository.findByFromMemberAndToMember(fromMember, toMember);
-        follow.unfollow(toMember);
-
-        log.info("팔로우 삭제");
-        followRepository.delete(follow);
+        Follow unfollow = fromMember.unfollow(toMember);
+        followRepository.delete(unfollow);
 
         return new FollowResponse<>(toMember.getNickName() + "님을 언팔로우 하였습니다.", null);
     }
@@ -86,21 +78,20 @@ public class FollowServiceImpl implements FollowService {
         return followings.map(FollowDto::following);
     }
 
-    private static Follow getFollow(Member fromMember) {
-        return Follow.builder()
-                .fromMember(fromMember)
-                .build();
+    // 팔로우 알람 전송.
+    private void sendFollowAlarm(Member fromMember, Member toMember) {
+        List<Member> receivers = List.of(toMember);
+        alarmProducer.send(AlarmEvent.of(AlarmType.NEW_FOLLOWER, fromMember, null, receivers));
     }
 
-    // 회원 조회
-    private Member getMember(Optional<Member> memberRepository) {
-        return memberRepository.orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    // 현재 요청회원 조회.
+    private Member getCurrentMember() {
+        String fromMemberEmail = SecurityUtil.getMemberEmail();
+        return memberRepository.findByEmail(fromMemberEmail).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
-    // 본인을 팔로우 하려는지 확인
-    private static void isOtherMember(FollowRequest request, Member fromMember, String message) {
-        if (request.toId().equals(fromMember.getId())) {
-            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, message);
-        }
+    // 요청 대상회원 조회.
+    private Member getTargetMember(FollowRequest request) {
+        return memberRepository.findById(request.toId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }
