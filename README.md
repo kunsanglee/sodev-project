@@ -7,10 +7,6 @@
 Swagger API 문서화:
 http://sodev.world/swagger-ui/index.html
 
-프로젝트 설계 문서:
-https://docs.google.com/spreadsheets/d/1peCvXjsnPfak6XQw_hGSzoS49zpCOL1mQa8j1T4Itcw/edit#gid=1614042564
-
-
 ---
 
 ## 개요
