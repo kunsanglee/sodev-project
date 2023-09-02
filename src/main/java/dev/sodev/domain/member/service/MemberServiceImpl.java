@@ -32,14 +32,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberJoinResponse join(MemberJoinRequest request) {
-        // 아이디 중복, 닉네임 중복일시 에러 반환
-        if (isDuplicatedEmail(request.email())) {
-            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_EMAIL);
-        }
-
-        if (isDuplicatedNickName(request.nickName())) {
-            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_NICKNAME);
-        }
+        validMemberJoinRequest(request);
 
         // 이메일 인증메일 발송 시작 ->
         // 프론트에서 비동기로 이메일 보내고 확인 코드 입력하면 회원가입 신청할 수 있게 변경해야됨.
@@ -75,13 +68,13 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberInfo getMyInfo() {
         Member member = getMemberBySecurity();
-        return MemberInfo.from(member);
+        return MemberInfo.fromEntity(member);
     }
 
     @Override
     public MemberInfo getMemberInfo(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
-        return MemberInfo.from(member);
+        return MemberInfo.fromEntity(member);
     }
 
     @Override
@@ -111,6 +104,17 @@ public class MemberServiceImpl implements MemberService {
         member.updatePassword(passwordEncoder, toBePassword);
 
         return new MemberUpdateResponse("비밀번호 변경이 완료됐습니다.");
+    }
+
+    private void validMemberJoinRequest(MemberJoinRequest request) {
+        // 아이디 중복, 닉네임 중복일시 에러 반환
+        if (isDuplicatedEmail(request.email())) {
+            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_EMAIL);
+        }
+
+        if (isDuplicatedNickName(request.nickName())) {
+            throw new SodevApplicationException(ErrorCode.DUPLICATE_USER_NICKNAME);
+        }
     }
 
     @Override
