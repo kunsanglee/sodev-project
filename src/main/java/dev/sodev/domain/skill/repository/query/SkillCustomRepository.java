@@ -1,4 +1,4 @@
-package dev.sodev.domain.skill.repository;
+package dev.sodev.domain.skill.repository.query;
 
 import dev.sodev.domain.skill.Skill;
 import org.springframework.stereotype.Repository;

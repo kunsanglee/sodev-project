@@ -1,4 +1,4 @@
-package dev.sodev.domain.project.repository;
+package dev.sodev.domain.project.repository.query;
 
 import dev.sodev.domain.project.Project;
 

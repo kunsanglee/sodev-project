@@ -1,6 +1,7 @@
 package dev.sodev.domain.alarm.repository;
 
 import dev.sodev.domain.alarm.Alarm;
+import dev.sodev.domain.alarm.repository.query.AlarmCustomRepository;
 import dev.sodev.domain.member.Member;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

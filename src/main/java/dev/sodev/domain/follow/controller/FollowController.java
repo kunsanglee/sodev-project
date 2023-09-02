@@ -13,10 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 
-
-
-import java.util.List;
-
 @Tag(name = "Follow", description = "팔로우 api")
 @RequestMapping("/v1/members")
 @RestController

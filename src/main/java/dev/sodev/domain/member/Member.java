@@ -127,11 +127,12 @@ public class Member extends BaseEntity {
         if (!project.getCreatedBy().equals(this.getEmail())) throw new SodevApplicationException(ErrorCode.INVALID_PERMISSION);
     }
 
+    // 회원을 팔로우 하는 회원리스트 반환.
     public List<Member> alarmsToFollower() {
         return this.getFollowers().stream().map(Follow::getFromMember).toList();
     }
 
-    // 본인을 팔로우 하려는지 확인
+    // 자기 자신을 팔로우 하려는지 확인
     public void isOtherMember(FollowRequest request, String message) {
         if (request.toId().equals(this.getId())) {
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, message);

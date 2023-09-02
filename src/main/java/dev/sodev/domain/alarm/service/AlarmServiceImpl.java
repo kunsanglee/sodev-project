@@ -4,13 +4,8 @@ import dev.sodev.domain.alarm.Alarm;
 import dev.sodev.domain.alarm.dto.AlarmDto;
 import dev.sodev.domain.alarm.emitter.EmitterRepository;
 import dev.sodev.domain.alarm.repository.AlarmRepository;
-import dev.sodev.domain.enums.ProjectRole;
-import dev.sodev.domain.follow.Follow;
-import dev.sodev.domain.likes.Likes;
 import dev.sodev.domain.member.Member;
-import dev.sodev.domain.member.MemberProject;
 import dev.sodev.domain.member.repository.MemberRepository;
-import dev.sodev.domain.project.Project;
 import dev.sodev.global.exception.ErrorCode;
 import dev.sodev.global.exception.SodevApplicationException;
 import dev.sodev.global.kafka.event.AlarmEvent;
@@ -26,7 +21,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -48,7 +42,7 @@ public class AlarmServiceImpl implements AlarmService {
         String memberEmail = SecurityUtil.getMemberEmail();
         Member member = getMemberByEmail(memberEmail);
 
-        return alarmRepository.findAllByMember(member, pageable).map(AlarmDto::of);
+        return alarmRepository.findAllByMember(member, pageable).map(AlarmDto::fromEntity);
     }
 
     @Override

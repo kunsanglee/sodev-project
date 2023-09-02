@@ -1,4 +1,4 @@
-package dev.sodev.domain.project.repository;
+package dev.sodev.domain.project.repository.query;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;

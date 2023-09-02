@@ -1,7 +1,6 @@
-package dev.sodev.domain.comment.repsitory;
+package dev.sodev.domain.comment.repsitory.query;
 
 import dev.sodev.domain.comment.Comment;
-import dev.sodev.domain.project.Project;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package dev.sodev.domain.comment.repsitory;
 
 import dev.sodev.domain.comment.Comment;
-import dev.sodev.domain.project.Project;
+import dev.sodev.domain.comment.repsitory.query.CommentCustomRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -1,4 +1,4 @@
-package dev.sodev.domain.review.repository;
+package dev.sodev.domain.review.repository.query;
 
 import dev.sodev.domain.review.dto.ReviewDto;
 import org.springframework.data.domain.Pageable;

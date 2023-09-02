@@ -1,9 +1,6 @@
 package dev.sodev.domain.alarm.service;
 
 import dev.sodev.domain.alarm.dto.AlarmDto;
-import dev.sodev.domain.enums.AlarmType;
-import dev.sodev.domain.member.Member;
-import dev.sodev.domain.project.Project;
 import dev.sodev.global.kafka.event.AlarmEvent;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

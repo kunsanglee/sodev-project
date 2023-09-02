@@ -6,7 +6,6 @@ import dev.sodev.domain.follow.dto.FollowDto;
 import dev.sodev.domain.follow.dto.FollowRequest;
 import dev.sodev.domain.follow.dto.FollowResponse;
 
-import java.util.List;
 
 public interface FollowService {
 
