@@ -29,9 +29,15 @@ public class LikeService {
         Project project = getProjectById(projectId);
         Member member = getReferenceByEmail(memberEmail);
 
-        if(project.getCreatedBy().equals(memberEmail)) throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인이 작성한 게시물은 좋아요를 누를 수 없습니다.");
+        if (project.getCreatedBy().equals(memberEmail)) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "본인이 작성한 게시물은 좋아요를 누를 수 없습니다.");
+        }
 
-        // like 테이블에 값이 없으면 추가 있으면 삭제.
+        return addOrDelete(projectId, project, member);
+    }
+
+    // like 테이블에 값이 없으면 추가 있으면 삭제.
+    private LikeResponse addOrDelete(Long projectId, Project project, Member member) {
         Likes likes = likeRepository.isProjectLikes(member.getId(), projectId);
         if (likes == null) {
             likeRepository.save(Likes.of(member, project));
@@ -39,9 +45,7 @@ public class LikeService {
                     .message(String.format("%s 을(를) 관심프로젝트에 저장하였습니다.", project.getTitle()))
                     .build();
         }
-
         likeRepository.delete(likes);
-
         return LikeResponse.builder()
                 .message(String.format("%s 을(를) 관심프로젝트에서 삭제하였습니다.", project.getTitle()))
                 .build();

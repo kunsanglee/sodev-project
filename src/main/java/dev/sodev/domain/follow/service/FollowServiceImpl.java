@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -69,19 +68,13 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public Slice<FollowDto> getFollowerByMemberId(Long memberId, Pageable pageable) {
         Slice<Follow> followers = followRepository.findAllByToMember_Id(memberId, pageable);
-        return followers.map(FollowDto::follower);
+        return followers.map(FollowDto::followerFromEntity);
     }
 
     @Override
     public Slice<FollowDto> getFollowingByMemberId(Long memberId, Pageable pageable) {
         Slice<Follow> followings = followRepository.findAllByFromMember_Id(memberId, pageable);
-        return followings.map(FollowDto::following);
-    }
-
-    // 팔로우 알람 전송.
-    private void sendFollowAlarm(Member fromMember, Member toMember) {
-        List<Member> receivers = List.of(toMember);
-        alarmProducer.send(AlarmEvent.of(AlarmType.NEW_FOLLOWER, fromMember, null, receivers));
+        return followings.map(FollowDto::followingFromEntity);
     }
 
     // 현재 요청회원 조회.
@@ -93,5 +86,11 @@ public class FollowServiceImpl implements FollowService {
     // 요청 대상회원 조회.
     private Member getTargetMember(FollowRequest request) {
         return memberRepository.findById(request.toId()).orElseThrow(() -> new SodevApplicationException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // 팔로우 알람 전송.
+    private void sendFollowAlarm(Member fromMember, Member toMember) {
+        List<Member> receivers = List.of(toMember);
+        alarmProducer.send(AlarmEvent.of(AlarmType.NEW_FOLLOWER, fromMember, null, receivers));
     }
 }
