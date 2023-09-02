@@ -4,7 +4,6 @@ import dev.sodev.domain.comment.Comment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
-import org.hibernate.annotations.SQLDelete;
 
 @Builder
 @Schema(description = "Comment Request")
@@ -17,7 +16,7 @@ public record CommentRequest(
         String content
 ) {
 
-        public Comment of(CommentRequest request) {
+        public Comment toEntity(CommentRequest request) {
                 return Comment.builder()
                         .content(request.content())
                         .build();

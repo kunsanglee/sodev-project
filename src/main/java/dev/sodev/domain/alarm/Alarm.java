@@ -6,9 +6,7 @@ import dev.sodev.domain.member.Member;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.Where;
 
 @Builder
 @Getter

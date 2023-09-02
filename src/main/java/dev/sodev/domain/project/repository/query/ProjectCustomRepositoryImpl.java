@@ -1,11 +1,8 @@
-package dev.sodev.domain.project.repository;
+package dev.sodev.domain.project.repository.query;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.project.Project;
-import dev.sodev.domain.project.QProject;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package dev.sodev.domain.alarm.repository;
+package dev.sodev.domain.alarm.repository.query;
 
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,7 +13,6 @@ import jakarta.persistence.PersistenceException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 

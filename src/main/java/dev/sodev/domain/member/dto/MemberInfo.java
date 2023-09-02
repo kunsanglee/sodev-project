@@ -21,13 +21,13 @@ public record MemberInfo(
         MemberProjectDto currentProject
 ) {
 
-    public static MemberInfo from(Member member) {
+    public static MemberInfo fromEntity(Member member) {
 
         MemberProjectDto currentProjectDto = member.getMemberProject()
                 .stream()
                 .filter(mp -> mp.getProject().getState().equals(ProjectState.PROGRESS) || mp.getProject().getState().equals(ProjectState.RECRUIT))
                 .findFirst()
-                .map(MemberProjectDto::of)
+                .map(MemberProjectDto::fromEntity)
                 .orElse(null);
 
         return MemberInfo.builder()

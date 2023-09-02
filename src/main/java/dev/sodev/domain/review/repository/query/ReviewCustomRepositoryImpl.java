@@ -1,8 +1,7 @@
-package dev.sodev.domain.review.repository;
+package dev.sodev.domain.review.repository.query;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import dev.sodev.domain.review.QReview;
 import dev.sodev.domain.review.dto.ReviewDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

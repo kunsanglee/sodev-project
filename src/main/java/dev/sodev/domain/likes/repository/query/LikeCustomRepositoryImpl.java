@@ -1,4 +1,4 @@
-package dev.sodev.domain.likes.repository;
+package dev.sodev.domain.likes.repository.query;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -1,5 +1,7 @@
 package dev.sodev.domain.enums;
 
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -36,5 +38,18 @@ public class ProjectRole {
                 .role(role)
                 .roleType(roleType)
                 .build();
+    }
+
+    // roleType 추출 메서드.
+    public static ProjectRole.RoleType getRoleType(String type) {
+        ProjectRole.RoleType role;
+        if (type.equals("BE")) {
+            role = ProjectRole.RoleType.BE;
+        } else if (type.equals("FE")) {
+            role = ProjectRole.RoleType.FE;
+        } else {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "BE 또는 FE 둘 중 하나를 선택해주세요");
+        }
+        return role;
     }
 }

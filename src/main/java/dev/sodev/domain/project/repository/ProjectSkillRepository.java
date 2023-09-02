@@ -1,6 +1,7 @@
 package dev.sodev.domain.project.repository;
 
 import dev.sodev.domain.project.ProjectSkill;
+import dev.sodev.domain.project.repository.query.ProjectSkillCustomRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

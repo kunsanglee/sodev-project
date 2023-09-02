@@ -1,4 +1,4 @@
-package dev.sodev.domain.comment.repsitory;
+package dev.sodev.domain.comment.repsitory.query;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import dev.sodev.domain.comment.Comment;

@@ -9,7 +9,7 @@ public record ReviewDto(
         String peerReview
 ) {
 
-    public static ReviewDto of(Review review) {
+    public static ReviewDto fromEntity(Review review) {
         return ReviewDto.builder()
                 .reviewId(review.getReviewId())
                 .peerReview(review.getPeerReview())

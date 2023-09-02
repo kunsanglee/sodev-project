@@ -3,7 +3,7 @@ package dev.sodev.domain.follow.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.sodev.domain.follow.Follow;
 import dev.sodev.domain.follow.dto.FollowRequest;
-import dev.sodev.domain.follow.repository.FollowCustomRepository;
+import dev.sodev.domain.follow.repository.query.FollowCustomRepository;
 import dev.sodev.domain.follow.repository.FollowRepository;
 import dev.sodev.domain.follow.service.FollowService;
 import dev.sodev.domain.member.Member;

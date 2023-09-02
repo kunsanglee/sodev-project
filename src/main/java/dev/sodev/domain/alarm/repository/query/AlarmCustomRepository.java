@@ -1,4 +1,4 @@
-package dev.sodev.domain.alarm.repository;
+package dev.sodev.domain.alarm.repository.query;
 
 import dev.sodev.domain.alarm.Alarm;
 import dev.sodev.domain.alarm.AlarmArgs;

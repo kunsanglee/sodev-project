@@ -1,4 +1,4 @@
-package dev.sodev.domain.skill.repository;
+package dev.sodev.domain.skill.repository.query;
 
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -9,10 +9,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-
 import java.sql.PreparedStatement;
 import java.util.List;
-
 
 
 @Repository
