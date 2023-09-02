@@ -6,7 +6,7 @@ public record AlarmMemberDto(
         Long id,
         String nickName
 ) {
-    public static AlarmMemberDto of(Member member) {
+    public static AlarmMemberDto fromMemberEntity(Member member) {
         return new AlarmMemberDto(member.getId(), member.getNickName());
     }
 }

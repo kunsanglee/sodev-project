@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -41,7 +42,7 @@ public class ProjectDto {
     private String modifiedBy;
     private LocalDateTime modifiedAt;
 
-    public static ProjectDto of(Project project) {
+    public static ProjectDto fromEntity(Project project) {
         return ProjectDto.builder()
                 .id(project.getId())
                 .be(project.getBe())

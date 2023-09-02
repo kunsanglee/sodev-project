@@ -6,7 +6,7 @@ import lombok.Builder;
 @Builder
 public record FollowDto(Long memberId, String email, String nickName) {
 
-    public static FollowDto follower(Follow follower) {
+    public static FollowDto followerFromEntity(Follow follower) {
         return FollowDto.builder()
                 .memberId(follower.getFromMember().getId())
                 .email(follower.getFromMember().getEmail())
@@ -14,7 +14,7 @@ public record FollowDto(Long memberId, String email, String nickName) {
                 .build();
     }
 
-    public static FollowDto following(Follow following) {
+    public static FollowDto followingFromEntity(Follow following) {
         return FollowDto.builder()
                 .memberId(following.getToMember().getId())
                 .email(following.getToMember().getEmail())

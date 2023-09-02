@@ -3,8 +3,6 @@ package dev.sodev.domain.comment.dto;
 import dev.sodev.domain.comment.Comment;
 import lombok.Builder;
 
-import java.util.List;
-
 @Builder
 public record CommentDto(
         Long id,
@@ -13,7 +11,7 @@ public record CommentDto(
         String content,
         Long parentId
 ) {
-    public static CommentDto of(Comment comment) {
+    public static CommentDto fromEntity(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
                 .memberId(comment.getMember() == null ? null : comment.getMember().getId())
