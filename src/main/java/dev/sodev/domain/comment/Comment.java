@@ -3,6 +3,8 @@ package dev.sodev.domain.comment;
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.member.Member;
 import dev.sodev.domain.project.Project;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -79,6 +81,15 @@ public class Comment extends BaseEntity {
         this.isRemoved = true;
     }
 
+    public Comment isRemovedAndWriter(Member member) {
+        if (this.isRemoved()) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "이미 삭제된 댓글입니다");
+        } else if (!this.getMember().getId().equals(member.getId())) {
+            throw new SodevApplicationException(ErrorCode.BAD_REQUEST, "댓글 작성자가 일치하지 않습니다.");
+        }
+        return this;
+    }
+
     // 삭제해도 되는 댓글리스트 반환(자식 댓글이 전부 isRemoved = true)
     public List<Comment> findRemovableList() {
 
@@ -101,7 +112,6 @@ public class Comment extends BaseEntity {
 
         return result;
     }
-
 
     // 모든 자식 댓글이 삭제되었는지 판단,
     private boolean isAllChildRemoved() {
