@@ -33,7 +33,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,7 +58,8 @@ class ProjectServiceImplTest {
     @MockBean CommentRepository commentRepository;
     @MockBean ReviewRepository reviewRepository;
     @MockBean AlarmRepository alarmRepository;
-    @Autowired ProjectService projectService;
+    @Autowired
+    ProjectManagementService projectService;
     @Autowired EntityManager em;
 
     @Mock Member member;
@@ -113,7 +113,7 @@ class ProjectServiceImplTest {
         Member member = getMember("test@test.com", "테스트닉네임");
         Project project = getProject();
         ProjectInfoRequest projectInfoRequest = getProjectInfoRequest(List.of("java", "kotlin", "node.js", "python", "c"));
-        Project request = ProjectInfoRequest.of(projectInfoRequest, member);
+        Project request = ProjectInfoRequest.toEntity(projectInfoRequest, member);
 
         when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(member));
         when(memberRepository.getReferenceByEmail(anyString())).thenReturn(member);

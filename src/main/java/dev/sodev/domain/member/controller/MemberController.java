@@ -7,8 +7,7 @@ import dev.sodev.domain.member.dto.request.MemberJoinRequest;
 import dev.sodev.domain.member.dto.request.MemberUpdateRequest;
 import dev.sodev.domain.member.dto.response.MemberJoinResponse;
 import dev.sodev.domain.member.dto.response.MemberUpdateResponse;
-import dev.sodev.domain.project.dto.ProjectDto;
-import dev.sodev.domain.project.service.ProjectService;
+import dev.sodev.domain.project.service.ProjectSearchService;
 import dev.sodev.domain.review.dto.ReviewDto;
 import dev.sodev.domain.review.service.ReviewService;
 import dev.sodev.global.Response;
@@ -30,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
-    private final ProjectService projectService;
+    private final ProjectSearchService projectSearchService;
     private final ReviewService reviewService;
 
     @Operation(summary = "회원가입", description = "이메일, 비밀번호, 닉네임, 핸드폰 번호를 입력하여 회원가입을 요청합니다.")
@@ -71,19 +70,19 @@ public class MemberController {
     @Operation(summary = "좋아요 누른 프로젝트 리스트", description = "회원의 id와 Pageable queryParam 으로 해당 회원이 좋아요 누른 프로젝트 리스트를 요청합니다.")
     @GetMapping("/members/{memberId}/likes") // 좋아요 누른 프로젝트 목록
     public Slice<LikesProjectDto> likeProjectList(@PathVariable Long memberId, Pageable pageable) {
-        return projectService.getLikeProjects(memberId, pageable);
+        return projectSearchService.getLikeProjects(memberId, pageable);
     }
 
     @Operation(summary = "참여 지원한 프로젝트 리스트", description = "회원의 id와 Pageable queryParam 으로 해당 회원이 참여 지원한 프로젝트 리스트를 요청합니다.")
     @GetMapping("/members/{memberId}/applies") // 지원한 프로젝트 목록
     public Slice<MemberAppliedDto> applyProjectList(@PathVariable Long memberId, Pageable pageable) {
-        return projectService.getApplyProjects(memberId, pageable);
+        return projectSearchService.getApplyProjects(memberId, pageable);
     }
 
     @Operation(summary = "완료한 프로젝트 리스트", description = "회원의 id와 Pageable queryParam 으로 해당 회원이 완료한 프로젝트 리스트를 요청합니다.")
     @GetMapping("/members/{memberId}/history") // 진행한 프로젝트 목록
     public Slice<MemberHistoryDto> projectHistoryList(@PathVariable Long memberId, Pageable pageable) {
-        return projectService.getHistoryProjects(memberId, pageable);
+        return projectSearchService.getHistoryProjects(memberId, pageable);
     }
 
     @Operation(summary = "동료평가 리스트", description = "회원의 id와 Pageable queryParam 으로 해당 회원이 받은 동료평가 리스트를 요청합니다.")

@@ -4,12 +4,13 @@ package dev.sodev.domain.member;
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.enums.ProjectRole;
 import dev.sodev.domain.project.Project;
+import dev.sodev.domain.project.dto.requset.ProjectInfoRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.Hibernate;
+
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -62,5 +63,12 @@ public class MemberProject extends BaseEntity {
 
     public void updateRole(ProjectRole role) {
         this.projectRole = role;
+    }
+
+    // request 를 받아서 역할, 직무 적용 후 Creator MemberProject 반환
+    public static MemberProject getMemberProject(ProjectInfoRequest request, Member member, Project project) {
+        ProjectRole.RoleType roleType = ProjectRole.getRoleType(request.roleType());
+        ProjectRole role = ProjectRole.setProjectRole(ProjectRole.Role.CREATOR, roleType);
+        return MemberProject.of(member, project, role);
     }
 }
