@@ -75,28 +75,46 @@ public class Member extends BaseEntity {
 
 
     // 비밀번호 변경, 회원 탈퇴 시, 비밀번호를 확인하여 일치하는지 확인
-    public boolean matchPassword(PasswordEncoder passwordEncoder, String checkPassword) {
+    private boolean matchPassword(PasswordEncoder passwordEncoder, String checkPassword) {
         return passwordEncoder.matches(checkPassword, getPassword());
     }
 
-    public void updatePassword(PasswordEncoder passwordEncoder, String password){
+    public void updatePassword(PasswordEncoder passwordEncoder, String checkPassword, String password){
+        if (!this.matchPassword(passwordEncoder, checkPassword)) {
+            throw new SodevApplicationException(ErrorCode.INVALID_PASSWORD);
+        }
         this.password = passwordEncoder.encode(password);
     }
 
-    public void updatePhone(String phone){
-        this.phone = phone;
+    public void updateMemberInfo(MemberUpdateRequest request) {
+        updateNickName(request.nickName());
+        updatePhone(request.phone());
+        updateIntroduce(request.introduce());
+        updateImage(request.memberImage());
     }
 
-    public void updateNickName(String nickName){
-        this.nickName = nickName;
+    private void updateNickName(String nickName){
+        if (nickName != null) {
+            this.nickName = nickName;
+        }
     }
 
-    public void updateIntroduce(String introduce){
-        this.introduce = introduce;
+    private void updatePhone(String phone){
+        if (phone != null) {
+            this.phone = phone;
+        }
     }
 
-    public void updateImage(Images memberImage) {
-        this.images = memberImage;
+    private void updateIntroduce(String introduce){
+        if (introduce != null) {
+            this.introduce = introduce;
+        }
+    }
+
+    private void updateImage(Images memberImage) {
+        if (memberImage != null) {
+            this.images = memberImage;
+        }
     }
 
     public void removeAllComments() {
@@ -104,16 +122,9 @@ public class Member extends BaseEntity {
         comments.clear();
     }
 
-    public void updateMemberInfo(MemberUpdateRequest request) {
-        this.updateNickName(request.nickName());
-        this.updatePhone(request.phone());
-        this.updateIntroduce(request.introduce());
-        this.updateImage(request.memberImage());
-    }
-
     // 회원이 이미 진행중이거나, 참여중인 프로젝트가 있는지 확인.
     public void isAlreadyInProject() {
-        this.getMemberProject().stream()
+        this.memberProject.stream()
                 .map(MemberProject::getProjectRole)
                 .filter(pr -> pr.getRole().equals(ProjectRole.Role.CREATOR) || pr.getRole().equals(ProjectRole.Role.MEMBER))
                 .findAny()
@@ -124,35 +135,26 @@ public class Member extends BaseEntity {
 
     // 작성자와 요청자가 다를경우 에러반환.
     public void isCreator(Project project) {
-        if (!project.getCreatedBy().equals(this.getEmail())) throw new SodevApplicationException(ErrorCode.INVALID_PERMISSION);
+        if (!project.getCreatedBy().equals(this.email)) throw new SodevApplicationException(ErrorCode.INVALID_PERMISSION);
     }
 
     // 회원을 팔로우 하는 회원리스트 반환.
     public List<Member> alarmsToFollower() {
-        return this.getFollowers().stream().map(Follow::getFromMember).toList();
+        return this.followers.stream().map(Follow::getFromMember).toList();
     }
 
     // 자기 자신을 팔로우 하려는지 확인
-    public void isOtherMember(FollowRequest request, String message) {
-        if (request.toId().equals(this.getId())) {
+    public void validSelfFollow(FollowRequest request, String message) {
+        if (request.toId().equals(this.id)) {
             throw new SodevApplicationException(ErrorCode.BAD_REQUEST, message);
         }
     }
 
     public Follow follow(Member targetMember) {
-        Follow follow = Follow.getFollow(this, targetMember);
-        this.getFollowing().add(follow);
-        targetMember.getFollowers().add(follow);
-        return follow;
+        return Follow.follow(this, targetMember);
     }
 
     public Follow unfollow(Member targetMember) {
-        Follow follow = this.getFollowing().stream()
-                .filter(f -> f.getToMember().equals(targetMember))
-                .findAny()
-                .orElseThrow(() -> new SodevApplicationException(ErrorCode.FOLLOW_NOT_FOUND));
-        this.getFollowing().remove(follow);
-        targetMember.followers.remove(follow);
-        return follow;
+        return Follow.unfollow(this, targetMember);
     }
 }
