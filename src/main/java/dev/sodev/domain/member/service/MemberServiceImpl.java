@@ -96,12 +96,7 @@ public class MemberServiceImpl implements MemberService {
         Member member = getMemberBySecurity();
         String checkPassword = updatePassword.checkPassword();
         String toBePassword = updatePassword.toBePassword();
-
-        if (!member.matchPassword(passwordEncoder, checkPassword)) {
-            throw new SodevApplicationException(ErrorCode.INVALID_PASSWORD);
-        }
-
-        member.updatePassword(passwordEncoder, toBePassword);
+        member.updatePassword(passwordEncoder, checkPassword, toBePassword);
 
         return new MemberUpdateResponse("비밀번호 변경이 완료됐습니다.");
     }
