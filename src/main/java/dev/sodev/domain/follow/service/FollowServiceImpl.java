@@ -41,7 +41,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public FollowResponse<Void> follow(@Valid FollowRequest request) {
         Member fromMember = getCurrentMember();
-        fromMember.isOtherMember(request, SELF_FOLLOW);
+        fromMember.validSelfFollow(request, SELF_FOLLOW);
         Member toMember = getTargetMember(request);
 
         Follow follow = fromMember.follow(toMember);
@@ -56,7 +56,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public FollowResponse<Void> unfollow(@Valid FollowRequest request) {
         Member fromMember = getCurrentMember();
-        fromMember.isOtherMember(request, SELF_UNFOLLOW);
+        fromMember.validSelfFollow(request, SELF_UNFOLLOW);
         Member toMember = getTargetMember(request);
 
         Follow unfollow = fromMember.unfollow(toMember);

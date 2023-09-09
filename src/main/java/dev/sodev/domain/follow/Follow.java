@@ -2,6 +2,8 @@ package dev.sodev.domain.follow;
 
 import dev.sodev.domain.BaseEntity;
 import dev.sodev.domain.member.Member;
+import dev.sodev.global.exception.ErrorCode;
+import dev.sodev.global.exception.SodevApplicationException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,20 +30,23 @@ public class Follow extends BaseEntity {
     @JoinColumn(name = "to_member")
     private Member toMember;
 
-    public void follow(Member member) {
-        this.toMember = member;
-        member.getFollowers().add(this);
-    }
-
-    public void unfollow(Member toMember) {
-        this.toMember = toMember;
-        toMember.getFollowers().remove(this);
-    }
-
-    public static Follow getFollow(Member fromMember, Member toMember) {
-        return Follow.builder()
+    public static Follow follow(Member fromMember, Member toMember) {
+        Follow follow = Follow.builder()
                 .fromMember(fromMember)
                 .toMember(toMember)
                 .build();
+        fromMember.getFollowing().add(follow);
+        toMember.getFollowers().add(follow);
+        return follow;
+    }
+
+    public static Follow unfollow(Member fromMember, Member toMember) {
+        Follow follow = fromMember.getFollowing().stream()
+                .filter(f -> f.getToMember().equals(toMember))
+                .findAny()
+                .orElseThrow(() -> new SodevApplicationException(ErrorCode.FOLLOW_NOT_FOUND));
+        fromMember.getFollowing().remove(follow);
+        toMember.getFollowers().remove(follow);
+        return follow;
     }
 }
